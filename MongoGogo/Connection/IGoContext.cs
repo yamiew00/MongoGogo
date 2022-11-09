@@ -2,7 +2,11 @@
 
 namespace MongoGogo.Connection
 {
-    public interface IMongoContext<TContext>
+    /// <summary>
+    /// MongoDb Context with type TContext.
+    /// </summary>
+    /// <typeparam name="TContext"></typeparam>
+    public interface IGoContext<TContext>
     {
         public IMongoDatabase GetDatabase(string name);
     }

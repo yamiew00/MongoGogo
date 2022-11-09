@@ -9,8 +9,8 @@ namespace MongoGogo.Connection
     /// <summary>
     /// A MongoDb Database.
     /// </summary>
-    /// <typeparam name="TContext"></typeparam>
-    /// <typeparam name="TDatabase"></typeparam>
+    /// <typeparam name="TContext">the context in which this database belongs.</typeparam>
+    /// <typeparam name="TDatabase">database type.</typeparam>
     public class GoDatabase<TContext, TDatabase> : IGoDatabase<TDatabase>
     {
         private readonly IMongoDatabase _MongoDatabase; 

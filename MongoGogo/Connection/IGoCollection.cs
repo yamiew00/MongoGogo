@@ -7,7 +7,7 @@ namespace MongoGogo.Connection
     /// Same to IMongoCollection<TDocument> in Mongo Driver
     /// </summary>
     /// <typeparam name="TDocument">Document in MongoDb</typeparam>
-    public interface ICollection<TDocument> : IMongoCollection<TDocument>
+    public interface IGoCollection<TDocument> : IMongoCollection<TDocument>
     {
     }
 }
