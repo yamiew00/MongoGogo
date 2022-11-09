@@ -22,11 +22,29 @@ namespace MongoGogo
                                                                    LifeCycleOption option = default)
             where TContext : IGoContext<TContext>
         {
+            return serviceCollection.AddMongoContext<TContext>(_ => mongoContext,
+                                                               option);
+        }
+
+        /// <summary>
+        /// Add an IGoContext to .net dependency injection container with scope lifecycle.
+        /// </summary>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="serviceCollection"></param>
+        /// <param name="implementationFactory"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static IServiceCollection AddMongoContext<TContext>(this IServiceCollection serviceCollection,
+                                                                   Func<IServiceProvider, object> implementationFactory,
+                                                                   LifeCycleOption option = default)
+    where TContext : IGoContext<TContext>
+        {
             //lifecycle option
             option ??= new LifeCycleOption();
 
             //di of this implemented class, with scope lifecycle
-            serviceCollection.AddScoped(typeof(TContext), _ => mongoContext);
+            serviceCollection.AddScoped(typeof(TContext), implementationFactory);
 
             //alltypes
             IEnumerable<Type> AllTypes = AppDomain.CurrentDomain
