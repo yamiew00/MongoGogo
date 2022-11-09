@@ -13,11 +13,11 @@ namespace MongoGogo.Connection
     /// </summary>
     /// <typeparam name="TDatabase"></typeparam>
     /// <typeparam name="TDocument"></typeparam>
-    public class Collection<TDatabase, TDocument> : ICollection<TDocument>
+    public class GoCollection<TDatabase, TDocument> : IGoCollection<TDocument>
     {
         private readonly IMongoCollection<TDocument> _MongoCollection;
 
-        public Collection(IDatabase<TDatabase> mongoDbDatabase)
+        public GoCollection(IGoDatabase<TDatabase> mongoDbDatabase)
         {
             //get collectionName using reflection. typeof(TDocument) must be decorated by MongoCollectionAttribute
             //todo: lifecycle of this class is Scope. Reflection may cause performance issue?

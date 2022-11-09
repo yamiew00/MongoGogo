@@ -11,7 +11,7 @@ namespace MongoGogo
     public static class ServiceCollectionExtension
     {
         /// <summary>
-        /// Add an IMongoContext to .net dependency injection container with scope lifecycle.
+        /// Add an IGoContext to .net dependency injection container with scope lifecycle.
         /// </summary>
         /// <typeparam name="TContext">must be in form of IMongoContext<TContext> </typeparam>
         /// <param name="serviceCollection"></param>
@@ -19,7 +19,7 @@ namespace MongoGogo
         /// <returns></returns>
         public static IServiceCollection AddMongoContext<TContext>(this IServiceCollection serviceCollection,
                                                                    TContext mongoContext)
-            where TContext : IMongoContext<TContext>
+            where TContext : IGoContext<TContext>
         {
             //di of this implemented class, with scope lifecycle
             serviceCollection.AddScoped(typeof(TContext), _ => mongoContext);
@@ -32,9 +32,9 @@ namespace MongoGogo
             //1. 自動注入所有自建的IMongoContext<>
             //ex: IMongoContext<TContext> → TContext for all TContext
             //todo: 用Name去判斷會有重名造成的錯誤
-            foreach (var mongoContextType in AllTypes.Where(type => type.BaseType?.Name == typeof(MongoContext<>).Name))
+            foreach (var mongoContextType in AllTypes.Where(type => type.BaseType?.Name == typeof(GoContext<>).Name))
             {
-                var serviceType = typeof(IMongoContext<>).GetGenericTypeDefinition().MakeGenericType(mongoContextType);
+                var serviceType = typeof(IGoContext<>).GetGenericTypeDefinition().MakeGenericType(mongoContextType);
                 var implementType = mongoContextType;
 
                 //自動implement的寫法是用factory去resolve出對應型別
@@ -51,17 +51,17 @@ namespace MongoGogo
                 if (contextType == null) throw new Exception("not a inner class"); //錯訊再補
 
                 if (contextType.GetInterfaces()
-                            .Count(@interface => @interface.Name == typeof(IMongoContext<>).Name) != 1)
+                            .Count(@interface => @interface.Name == typeof(IGoContext<>).Name) != 1)
                 {
                     //this class must be an inner class of IMongoContext<>
                     throw new Exception("not implement IMongoContext"); //錯訊再補
                 }
 
                 //make interface
-                var serviceType = typeof(IDatabase<>).GetGenericTypeDefinition()
+                var serviceType = typeof(IGoDatabase<>).GetGenericTypeDefinition()
                                                             .MakeGenericType(dbType);
 
-                var implementType = typeof(Database<,>).GetGenericTypeDefinition()
+                var implementType = typeof(GoDatabase<,>).GetGenericTypeDefinition()
                                                               .MakeGenericType(contextType, dbType);
 
                 serviceCollection.AddScoped(serviceType: serviceType,
@@ -76,9 +76,9 @@ namespace MongoGogo
                 var collectionAttribute = collectionType.GetCustomAttribute<MongoCollectionAttribute>();
                 var dbType = collectionAttribute.DbType;
 
-                var serviceType = typeof(Connection.ICollection<>).GetGenericTypeDefinition()
+                var serviceType = typeof(Connection.IGoCollection<>).GetGenericTypeDefinition()
                                                                   .MakeGenericType(collectionType);
-                var implementType = typeof(Collection<,>).GetGenericTypeDefinition()
+                var implementType = typeof(GoCollection<,>).GetGenericTypeDefinition()
                                                                .MakeGenericType(dbType, collectionType);
 
                 serviceCollection.AddScoped(serviceType: serviceType,
