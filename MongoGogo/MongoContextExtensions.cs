@@ -18,9 +18,13 @@ namespace MongoGogo
         /// <param name="mongoContext">the instance of the mongoContext</param>
         /// <returns></returns>
         public static IServiceCollection AddMongoContext<TContext>(this IServiceCollection serviceCollection,
-                                                                   TContext mongoContext)
+                                                                   TContext mongoContext,
+                                                                   LifeCycleOption option = default)
             where TContext : IGoContext<TContext>
         {
+            //lifecycle option
+            option ??= new LifeCycleOption();
+
             //di of this implemented class, with scope lifecycle
             serviceCollection.AddScoped(typeof(TContext), _ => mongoContext);
 
@@ -38,8 +42,10 @@ namespace MongoGogo
                 var implementType = mongoContextType;
 
                 //自動implement的寫法是用factory去resolve出對應型別
-                serviceCollection.AddScoped(serviceType,
-                                            serviceProvider => serviceProvider.GetService(implementType));
+                var contextLifeCycle = option.ContextLifeCycle;
+                serviceCollection.AddService(option.ContextLifeCycle,
+                                             serviceType,
+                                             serviceProvider => serviceProvider.GetService(implementType));
             }
 
             //2. 自動注入Database using reflection
@@ -59,13 +65,14 @@ namespace MongoGogo
 
                 //make interface
                 var serviceType = typeof(IGoDatabase<>).GetGenericTypeDefinition()
-                                                            .MakeGenericType(dbType);
+                                                       .MakeGenericType(dbType);
 
                 var implementType = typeof(GoDatabase<,>).GetGenericTypeDefinition()
-                                                              .MakeGenericType(contextType, dbType);
+                                                         .MakeGenericType(contextType, dbType);
 
-                serviceCollection.AddScoped(serviceType: serviceType,
-                                            implementationType: implementType);
+                serviceCollection.AddService(option.DatabaseLifeCycle,
+                                             serviceType,
+                                             implementType);
             }
 
 
@@ -81,10 +88,59 @@ namespace MongoGogo
                 var implementType = typeof(GoCollection<,>).GetGenericTypeDefinition()
                                                                .MakeGenericType(dbType, collectionType);
 
-                serviceCollection.AddScoped(serviceType: serviceType,
-                                            implementationType: implementType);
+                serviceCollection.AddService(option.CollectionLifeCycle,
+                                             serviceType,
+                                             implementType);
             }
 
+            return serviceCollection;
+        }
+
+        private static IServiceCollection AddService(this IServiceCollection serviceCollection,
+                                                     LifeCycleType lifeCycleType,
+                                                     Type serviceType,
+                                                     Func<IServiceProvider, object> implementationFactory)
+        {
+            if (lifeCycleType == LifeCycleType.Singleton)
+            {
+                serviceCollection.AddSingleton(serviceType, implementationFactory);
+            }
+            else if (lifeCycleType == LifeCycleType.Scoped)
+            {
+                serviceCollection.AddScoped(serviceType, implementationFactory);
+            }
+            else if (lifeCycleType == LifeCycleType.Transient)
+            {
+                serviceCollection.AddTransient(serviceType, implementationFactory);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+            return serviceCollection;
+        }
+
+        private static IServiceCollection AddService(this IServiceCollection serviceCollection,
+                                                     LifeCycleType lifeCycleType,
+                                                     Type serviceType,
+                                                     Type implenmentType)
+        {
+            if (lifeCycleType == LifeCycleType.Singleton)
+            {
+                serviceCollection.AddSingleton(serviceType, implenmentType);
+            }
+            else if (lifeCycleType == LifeCycleType.Scoped)
+            {
+                serviceCollection.AddScoped(serviceType, implenmentType);
+            }
+            else if (lifeCycleType == LifeCycleType.Transient)
+            {
+                serviceCollection.AddTransient(serviceType, implenmentType);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
             return serviceCollection;
         }
     }
