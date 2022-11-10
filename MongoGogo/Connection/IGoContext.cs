@@ -6,7 +6,7 @@ namespace MongoGogo.Connection
     /// MongoDb Context with type TContext.
     /// </summary>
     /// <typeparam name="TContext"></typeparam>
-    public interface IGoContext<TContext>
+    public interface IGoContext<TContext> : IMongoClient
     {
         public IMongoDatabase GetDatabase(string name);
     }
