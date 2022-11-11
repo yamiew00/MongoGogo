@@ -13,9 +13,9 @@ namespace MongoGogo.Connection
         /// </summary>
         public string? GivenName { get; private set; }
 
-        public MongoDatabaseAttribute(string? name = default)
+        public MongoDatabaseAttribute(string? dbName = default)
         {
-            this.GivenName = name;
+            this.GivenName = dbName;
         }
     }
 }

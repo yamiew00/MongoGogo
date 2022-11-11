@@ -16,7 +16,37 @@ dotnet add package MongoGogo
 
 # **Example**
 
-After few steps of `configuration` and `class building`, you can easily get any `Collection`, `Database` and `context` in abstract through the dependency resolution system.
+- After few steps of `configuration` and `class building`, you can easily get your `Repository` in abstract through the dependency resolution system.
+
+```c#
+public class MyController : ControllerBase
+{
+    private readonly IGoRepository<Hospital> HospitalRepository;
+
+    public MyController(IGoRepository<Hospital> hospitalRepository)
+    {
+    	this.HospitalRepository = hospitalRepository;
+    }
+}
+```
+
+- Easy way to access data.
+
+```c#
+public class MyController : ControllerBase
+{
+    [HttpGet("IGoRepository<Hospital>_GetList")]
+    public async Task<IActionResult> Hospitals()
+    {
+        var hospitals = await HospitalRepository.FindAsync(_ => true);
+        return Ok(hospitals);
+    }
+}
+```
+
+
+
+- Also, MongoGogo provides any `Collection`, `Database` and `context` in abstract !
 
 ```c#
 public class MyController : ControllerBase
@@ -80,7 +110,9 @@ public class MyController : ControllerBase
 
 ## **Configuration**
 
-In the `ConfigureSerivces` segment of `.net core`, pass an `IGoContext` instance into your `IServiceCollection`.
+In the `ConfigureSerivces` segment of `.net core`, pass an `IGoContext` instance into your `IServiceCollection`. 
+
+The build of concrete class `MyMongoDBContext` is introduced next part.
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
@@ -101,6 +133,28 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
+----
+
+
+
+- LifeCycleOption: `Singleton`, `Scoped`, `Transient`
+
+Besides, you can controller the lifecyle of all `IGoContext<T>`, `IGoDatabase<T>`, `IGoCollection<T>`, `IGoRepository<T>` using LifeCycleOption. `Scoped` by default.
+
+```
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMongoContext(new MyMongoDBContext("my mongodb connection string"),
+    						 new LifeCycleOption
+                                 {
+                                     ContextLifeCycle = LifeCycleType.Singleton,
+                                     DatabaseLifeCycle = LifeCycleType.Scoped,
+                                     CollectionLifeCycle = LifeCycleType.Scoped,
+                                     RepositoryLifeCycle = LifeCycleType.Transient,
+                                 });
+}
+```
+
 
 
 ## **Context**
@@ -109,7 +163,7 @@ public void ConfigureServices(IServiceCollection services)
 
 - Stands for a MongoDB Connection (using package MongoDB.Driver)
 - an instance stores `connection string` and is in charge of the structure of an `entity`.
-- generic TContext is used for dependency resolution system. 
+- generic TContext, which owns the type itself,  is used for `dependency resolution system`. 
 
 ```c#
 public class MyMongoDBContext : GoContext<MyMongoDBContext>
@@ -187,3 +241,92 @@ public class Hospital
 }
 ```
 
+
+
+## **Repositories**
+
+By default, resolution system will build exactly one `IGoRepository<TDocument>` for every `IGoCollection<TDocument>` . 
+
+`IGoRepository<TDocument>`  is in charge of the contact of a MongoDb connection and your project.
+
+```c#
+public class MyClass
+{
+	private readonly IGoRepository<Hospital> HospitalRepository;
+    private readonly IGoCollection<Hospital> HospitalCollection;
+
+    public MyClass(IGoRepository<Hospital> hospitalRepository,
+    			   IGoCollection<Hospital> hospitalCollection)
+    {
+        this.HospitalRepository = hospitalRepository;
+        this.HospitalCollection = hospitalCollection;
+    }
+}
+```
+
+In fact, You can deal with data using `IGoRepository<Hospital>` or `IGoCollection<Hospital>`.
+
+The main difference between them is :
+
+- `IGoCollection<Hospital>` is actually the `IMongoCollection<Hospital>`, the instance from [MongoDB.Driver](https://www.mongodb.com/docs/drivers/csharp/)
+- `IGoRepository<Hospital>` is an packaged instance, but with handy method to operate your datas.
+
+```c#
+public async Task AddNewHospital(Hospital hospital)
+{
+    HospitalRepository.InsertOne(hospital);
+    HospitalCollection.InsertOne(hospital);
+}
+```
+
+- `IGoRepository<Tdocument>` has basic method dealing your data, like `FindOneAsync`, `InsertOne`, `ReplaceOne`, `Count`, and so on. 
+- But if you want some extra fancy feature, you can also **do it yourself**  by overriding the origin method !!!
+
+
+
+#### **Custom Repository**
+
+If the basic functionality of `IGoRepository<TDocument>` cannot fullfill you,
+
+*(like: print some message and saves it as a local log)*
+
+then inherit the `GoRepositoryAbstract<TDocument>` and make your own child.
+
+```c#
+public class HospitalRepository : GoRepositoryAbstract<Hospital>
+{
+    public HospitalRepository(IGoCollection<Hospital> collection) : base(collection)
+    {
+    }
+    
+    public override void InsertOne(Hospital hospital)
+    {
+    	base.InsertOne(hospital);
+        Logger.PrintAndSave(hospital); //print insert success and save
+    }
+}
+```
+
+After this , the resolution system will map new child `HospitalRepository` to `IGoRepository <Hospital>`
+
+```
+public class MyClass
+{
+	private readonly IGoRepository<Hospital> HospitalRepository; //actually your new class HospitalRepository
+    private readonly IGoCollection<Hospital> HospitalCollection; //not changed
+
+    public MyClass(IGoRepository<Hospital> hospitalRepository,
+    			   IGoCollection<Hospital> hospitalCollection)
+    {
+        this.HospitalRepository = hospitalRepository; //actually your new class HospitalRepository
+        this.HospitalCollection = hospitalCollection; //not changed
+    }
+    
+    public async Task AddNewHospital(Hospital hospital)
+    {
+        HospitalRepository.InsertOne(hospital);  // it will print insert success and save
+
+        HospitalCollection.InsertOne(hospital);  // nothing else
+    }
+}
+```

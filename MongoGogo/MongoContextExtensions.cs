@@ -38,7 +38,7 @@ namespace MongoGogo
         public static IServiceCollection AddMongoContext<TContext>(this IServiceCollection serviceCollection,
                                                                    Func<IServiceProvider, object> implementationFactory,
                                                                    LifeCycleOption option = default)
-    where TContext : IGoContext<TContext>
+                where TContext : IGoContext<TContext>
         {
             //lifecycle option
             option ??= new LifeCycleOption();
@@ -60,7 +60,6 @@ namespace MongoGogo
                 var implementType = mongoContextType;
 
                 //自動implement的寫法是用factory去resolve出對應型別
-                var contextLifeCycle = option.ContextLifeCycle;
                 serviceCollection.AddService(option.ContextLifeCycle,
                                              serviceType,
                                              serviceProvider => serviceProvider.GetService(implementType));
@@ -94,10 +93,13 @@ namespace MongoGogo
             }
 
 
-            //3. 注入Collections using reflection
-            //ICollection<TDocument> → Collection<TMongoDatabase, TDocument> for all TMongoDatabase and corresponding TDocument
+            //3. inject IGoCollections using reflection
+            //  (1)IGoCollection<TDocument> → GoCollection<TDatabase, TDocument> for all TMongoDatabase and corresponding TDocument
+            //  (2)IGoRepository<TDocument> → <1> (high prior) some concrete class MyRepository<TDocuement> : GoRepositoryAbstract
+            //                                 <2> (low prior) default implementation, which is GoRepository
             foreach (var collectionType in AllTypes.Where(type => type.GetCustomAttribute<MongoCollectionAttribute>() != null))
             {
+                //(1) IGoCollection
                 var collectionAttribute = collectionType.GetCustomAttribute<MongoCollectionAttribute>();
                 var dbType = collectionAttribute.DbType;
 
@@ -109,6 +111,30 @@ namespace MongoGogo
                 serviceCollection.AddService(option.CollectionLifeCycle,
                                              serviceType,
                                              implementType);
+
+                //(2) IGoRepository
+                var customImplementType = typeof(IGoRepository<>).GetGenericTypeDefinition()
+                                                                 .MakeGenericType(collectionType);
+                //this types shows all concrete type excepts GoRepository<TDocument> that implement IGoRepository<TDocument> 
+                var customConcreteImplementTypes = AllTypes.Where(type => type.IsClass &&
+                                                                          !type.IsAbstract &&
+                                                                          (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(GoRepository<>)) &&
+                                                                          type.GetInterfaces().Any(@interface => @interface.IsGenericType &&
+                                                                                                    @interface.GetGenericTypeDefinition() == typeof(IGoRepository<>)))
+                                                            .ToList();
+
+                Type repositoryServiceType = typeof(IGoRepository<>).GetGenericTypeDefinition().MakeGenericType(collectionType);
+                Type repositoryImplementType = customConcreteImplementTypes.Count switch
+                {
+                    0 => typeof(GoRepository<>).GetGenericTypeDefinition().MakeGenericType(collectionType),
+                    1 => customConcreteImplementTypes.First(),
+                    //the implementation mapping is one-to-one
+                    _ => throw new Exception($"too many implementation: {string.Join(',', customConcreteImplementTypes.Select(type => type.GetFriendlyName()))}")
+                };
+
+                serviceCollection.AddService(option.RepositoryLifeCycle,
+                                             repositoryServiceType,
+                                             repositoryImplementType);
             }
 
             return serviceCollection;
