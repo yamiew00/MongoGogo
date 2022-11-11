@@ -26,12 +26,30 @@ namespace MongoGogo.Connection
 
         public Task InsertManyAsync(IEnumerable<TDocument> documents);
 
-        public void ReplaceOne(Expression<Func<TDocument, bool>> filter, TDocument document, ReplaceOptions replaceOptions = default);
+        public void ReplaceOne(Expression<Func<TDocument, bool>> filter,
+                               TDocument document,
+                               ReplaceOptions replaceOptions = default);
 
-        public Task ReplaceOneAsync(Expression<Func<TDocument, bool>> filter, TDocument document, ReplaceOptions replaceOptions = default);
+        public Task ReplaceOneAsync(Expression<Func<TDocument, bool>> filter,
+                                    TDocument document,
+                                    ReplaceOptions replaceOptions = default);
 
         public long Count(Expression<Func<TDocument, bool>> filter);
 
         public Task<long> CountAsync(Expression<Func<TDocument, bool>> filter);
+
+        public GoUpdateResult UpdateOne(Expression<Func<TDocument, bool>> filter,
+                                        Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
+                                        bool isUpsert = false);
+
+        public Task<GoUpdateResult> UpdateOneAsync(Expression<Func<TDocument, bool>> filter,
+                                                   Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
+                                                   bool isUpsert = false);
+
+        public GoUpdateResult UpdateMany(Expression<Func<TDocument, bool>> filter,
+                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set);
+
+        public Task<GoUpdateResult> UpdateManyAsync(Expression<Func<TDocument, bool>> filter,
+                                                    Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set);
     }
 }

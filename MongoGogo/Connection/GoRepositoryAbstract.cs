@@ -82,5 +82,59 @@ namespace MongoGogo.Connection
         {
             return MongoCollection.ReplaceOneAsync(filter, document, replaceOptions);
         }
+
+        public GoUpdateResult UpdateOne(Expression<Func<TDocument, bool>> filter,
+                                        Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
+                                        bool isUpsert = false)
+        {
+            var updateBuilder = new GoUpdateBuilder<TDocument>();
+            var mongoUpdateDefinition = set.Compile()
+                                           .Invoke(updateBuilder).MongoUpdateDefinition;
+            var mongoUpdateResult = MongoCollection.UpdateOne(filter, 
+                                          mongoUpdateDefinition, 
+                                          new UpdateOptions
+                                          {
+                                              IsUpsert = isUpsert
+                                          });
+            return new GoUpdateResult(mongoUpdateResult);
+        }
+
+        public async Task<GoUpdateResult> UpdateOneAsync(Expression<Func<TDocument, bool>> filter,
+                                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
+                                                         bool isUpsert = false)
+        {
+            var updateBuilder = new GoUpdateBuilder<TDocument>();
+            var mongoUpdateDefinition = set.Compile()
+                                           .Invoke(updateBuilder).MongoUpdateDefinition;
+            var mongoUpdateResult = await MongoCollection.UpdateOneAsync(filter,
+                                                                         mongoUpdateDefinition,
+                                                                         new UpdateOptions
+                                                                         {
+                                                                             IsUpsert = isUpsert
+                                                                         });
+            return new GoUpdateResult(mongoUpdateResult);
+        }
+
+        public GoUpdateResult UpdateMany(Expression<Func<TDocument, bool>> filter,
+                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set)
+        {
+            var updateBuilder = new GoUpdateBuilder<TDocument>();
+            var mongoUpdateDefinition = set.Compile()
+                                           .Invoke(updateBuilder).MongoUpdateDefinition;
+            var mongoUpdateResult = MongoCollection.UpdateMany(filter,
+                                                               mongoUpdateDefinition);
+            return new GoUpdateResult(mongoUpdateResult);
+        }
+
+        public async Task<GoUpdateResult> UpdateManyAsync(Expression<Func<TDocument, bool>> filter,
+                                                          Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set)
+        {
+            var updateBuilder = new GoUpdateBuilder<TDocument>();
+            var mongoUpdateDefinition = set.Compile()
+                                           .Invoke(updateBuilder).MongoUpdateDefinition;
+            var mongoUpdateResult = await MongoCollection.UpdateManyAsync(filter,
+                                                                          mongoUpdateDefinition);
+            return new GoUpdateResult(mongoUpdateResult);
+        }
     }
 }

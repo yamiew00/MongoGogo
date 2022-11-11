@@ -43,8 +43,8 @@ namespace MongoGogo
             //lifecycle option
             option ??= new LifeCycleOption();
 
-            //di of this implemented class, with scope lifecycle
-            serviceCollection.AddScoped(typeof(TContext), implementationFactory);
+            //di of this implemented class, with option lifecycle
+            serviceCollection.AddService(option.ContextLifeCycle, typeof(TContext), implementationFactory);
 
             //alltypes
             IEnumerable<Type> AllTypes = AppDomain.CurrentDomain
@@ -119,8 +119,7 @@ namespace MongoGogo
                 var customConcreteImplementTypes = AllTypes.Where(type => type.IsClass &&
                                                                           !type.IsAbstract &&
                                                                           (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(GoRepository<>)) &&
-                                                                          type.GetInterfaces().Any(@interface => @interface.IsGenericType &&
-                                                                                                    @interface.GetGenericTypeDefinition() == typeof(IGoRepository<>)))
+                                                                          type.GetInterfaces().Any(@interface => @interface == customImplementType))
                                                             .ToList();
 
                 Type repositoryServiceType = typeof(IGoRepository<>).GetGenericTypeDefinition().MakeGenericType(collectionType);
