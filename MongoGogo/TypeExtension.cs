@@ -26,5 +26,14 @@ namespace MongoGogo
 
             return friendlyName;
         }
+
+        internal static bool GenericEquals(this Type type, Type genericType)
+        {
+            var isFormerGeneric = type != null && type.IsGenericType;
+            var isLatter = genericType != null && genericType.IsGenericType;
+            if (!isFormerGeneric || !isLatter) return false;
+
+            return type.GetGenericTypeDefinition() == genericType;
+        }
     }
 }

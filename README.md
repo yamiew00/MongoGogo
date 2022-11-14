@@ -16,7 +16,7 @@ dotnet add package MongoGogo
 
 # **Example**
 
-- After few steps of `configuration` and `class building`, you can easily get your `Repository` in abstract through the dependency resolution system.
+- After few steps of `configuration` and `class building`(introduced later), you can easily get your `Repository` in abstract through the dependency resolution system.
 
 ```c#
 public class MyController : ControllerBase
@@ -330,3 +330,182 @@ public class MyClass
     }
 }
 ```
+
+
+
+
+
+# **Feature**
+
+This part shows basic method of  an`IGoRepository<TDocument>`
+
+```c#
+IGoRepository<City> CityRepository;
+```
+
+
+
+## **Count / CountAsync**
+
+```c#
+var documentCount = CityRepository.Count(city => city.Population >= 1000);
+var documentCountAsync = await CityRepository.CountAsync(city => city.Population >= 1000);
+```
+
+
+
+## **Find/FindAsync**
+
+```c#
+var foundDocuments = CityRepository.Find(city => city.Population >= 1000);
+var foundDocumentAsync = await CityRepository.FindAsync(city => city.Population >= 1000);
+```
+
+- with `goFindOption` (optional)
+
+```c#
+var foundDocuments = CityRepository.Find(city => city.Population >= 1000,
+                                         goFindOption: new GoFindOption
+                                        {
+                                            AllowDiskUse = true,
+                                            Limit = 2,
+                                            Skip = 1
+                                        });
+var foundDocumentAsync = await CityRepository.FindAsync(city => city.Population >= 1000, 
+                                                        goFindOption: new GoFindOption
+                                                        {
+                                                            AllowDiskUse = true,
+                                                            Limit = 2,
+                                                            Skip = 1
+                                                        });
+```
+
+- field reduction with `projection`(optional)
+
+```c#
+var reducedDocuments = CityRepository.Find(city => city.Population >= 1000,
+                                           projection: builder => builder.Include(city => city.Population)
+                                                                         .Include(city => city.Name));
+var reducedDocumentAsync = await CityRepository.FindAsync(city => city.Population >= 1000, 
+                                                          projection: builder => builder.Include(city => city.Population)
+                                                                                        .Include(city => city.Name));
+```
+
+
+
+## **FindOne/FindOneAsync**
+
+```c#
+var firstOrDefaultDocument = CityRepository.FindOne(city => city.Population >= 1000);
+var firstOrDefaultDocumentAsync = await CityRepository.FindOneAsync(city => city.Population >= 1000);
+```
+
+
+
+## **InsertOne/InsertOneAsync**
+
+```c#
+CityRepository.InsertOne(new City{Name = "New York"});
+await CityRepository.InsertOneAsync(new City{Name = "New York"});
+```
+
+
+
+## **InsertMany/InsertManyAsync**
+
+```c#
+var cityList = new List<City>
+{
+	new City{}, 
+	new City{Name = "New York"}, 
+	new City{Population = 100}
+};
+
+CityRepository.InsertMany(cityList);
+await CityRepository.InsertManyAsync(cityList);
+```
+
+
+
+## **ReplaceOne/ReplaceOneAsync**
+
+```apl
+var city = new City
+{
+	Name = "NewYork_America"
+};
+
+CityRepository.ReplaceOne(c => c.Name == "NewYork",
+						  city);
+await CityRepository.ReplaceOneAsync(c => c.Name == "NewYork",
+									 city);
+```
+
+- with `upsert`(optional)
+
+```c#
+CityRepository.ReplaceOne(c => c.Name == "NewYork",
+                          city,
+                          isUpsert: true);
+await CityRepository.ReplaceOneAsync(c => c.Name == "NewYork",
+                                     city,
+                                     isUpsert: true);
+```
+
+
+
+## **UpdateOne/UpdateOneAsync**
+
+```c#
+CityRepository.UpdateOne(city => city.Name == "New York",
+                         builder => builder.Set(city => city.Name, "New York_America")
+                       					   .Set(city => city.Population, 1000));
+await CityRepository.UpdateOneAsync(city => city.Name == "New York",
+                                    builder => builder.Set(city => city.Name, "New York_America")
+                                    				  .Set(city => city.Population, 1000));
+```
+
+- with `upsert`(optional)
+
+```c#
+CityRepository.UpdateOne(city => city.Name == "New York",
+                         builder => builder.Set(city => city.Name, "New York_America")
+                       					   .Set(city => city.Population, 1000),
+                         isUpsert: true);
+await CityRepository.UpdateOneAsync(city => city.Name == "New York",
+                                    builder => builder.Set(city => city.Name, "New York_America")
+                                    				  .Set(city => city.Population, 1000),
+                                   isUpsert: true);
+```
+
+
+
+## **UpdateMany/UpdateManyAsync**
+
+```c#
+CityRepository.UpdateMany(city => city.Name == "New York",
+                          builder => builder.Set(city => city.Name, "New York_America")
+                      					    .Set(city => city.Population, 1000));
+await CityRepository.UpdateManyAsync(city => city.Name == "New York",
+                                     builder => builder.Set(city => city.Name, "New York_America")
+ 				                                       .Set(city => city.Population, 1000));
+```
+
+
+
+## **DeleteOne/DeleteOneAsync**
+
+```c#
+CityRepository.DeleteOne(city => city.Name == "New York");
+await CityRepository.DeleteOneAsync(city => city.Name == "New York");
+```
+
+
+
+## **DeleteMany/DeleteManyAsync**
+
+```c#
+CityRepository.DeleteMany(city => city.Name == "New York");
+await CityRepository.DeleteManyAsync(city => city.Name == "New York");
+```
+

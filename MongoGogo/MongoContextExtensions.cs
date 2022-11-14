@@ -53,8 +53,7 @@ namespace MongoGogo
 
             //1. 自動注入所有自建的IMongoContext<>
             //ex: IMongoContext<TContext> → TContext for all TContext
-            //todo: 用Name去判斷會有重名造成的錯誤
-            foreach (var mongoContextType in AllTypes.Where(type => type.BaseType?.Name == typeof(GoContext<>).Name))
+            foreach (var mongoContextType in AllTypes.Where(type => type.BaseType.GenericEquals(typeof(GoContext<>))))
             {
                 var serviceType = typeof(IGoContext<>).GetGenericTypeDefinition().MakeGenericType(mongoContextType);
                 var implementType = mongoContextType;
@@ -74,7 +73,7 @@ namespace MongoGogo
                 if (contextType == null) throw new Exception("not a inner class"); //錯訊再補
 
                 if (contextType.GetInterfaces()
-                            .Count(@interface => @interface.Name == typeof(IGoContext<>).Name) != 1)
+                            .Count(@interface => @interface.GenericEquals(typeof(IGoContext<>))) != 1)
                 {
                     //this class must be an inner class of IMongoContext<>
                     throw new Exception("not implement IMongoContext"); //錯訊再補
