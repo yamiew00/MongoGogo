@@ -12,7 +12,15 @@ namespace MongoGogo.Connection
 
         public IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter);
 
+        public IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
+                                           Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                           GoFindOption goFindOption = default);
+
         public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter);
+
+        public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
+                                                      Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                                      GoFindOption goFindOption = default);
 
         public TDocument FindOne(Expression<Func<TDocument, bool>> filter);
 

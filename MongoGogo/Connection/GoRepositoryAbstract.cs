@@ -38,9 +38,40 @@ namespace MongoGogo.Connection
             return MongoCollection.Find(filter).ToEnumerable();
         }
 
+        public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
+                                                   Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,    
+                                                   GoFindOption goFindOption = default)
+        {
+            goFindOption ??= new GoFindOption();
+            var builder = new GoProjectionBuilder<TDocument>();
+            return MongoCollection.Find(filter, new FindOptions
+                                   {
+                                       AllowDiskUse = goFindOption.AllowDiskUse,
+                                   })
+                                   .Project<TDocument>(projection?.Compile().Invoke(builder).MongoProjectionDefinition)
+                                  .Limit(goFindOption.Limit)
+                                  .Skip(goFindOption.Skip)
+                                  .ToEnumerable();
+        }
+
         public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter)
         {
             return (await MongoCollection.FindAsync(filter)).ToEnumerable();
+        }
+
+        public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
+                                                                    Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                                                    GoFindOption goFindOption = default)
+        {
+            goFindOption ??= new GoFindOption();
+            var builder = new GoProjectionBuilder<TDocument>();
+            return (await MongoCollection.FindAsync(filter, new FindOptions<TDocument, TDocument>
+            {
+                Projection = projection?.Compile().Invoke(builder).MongoProjectionDefinition,
+                AllowDiskUse = goFindOption.AllowDiskUse,
+                Limit = goFindOption.Limit,
+                Skip = goFindOption.Skip
+            })).ToEnumerable();
         }
 
         public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter)
