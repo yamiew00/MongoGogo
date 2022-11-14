@@ -26,13 +26,13 @@ namespace MongoGogo.Connection
 
         public Task InsertManyAsync(IEnumerable<TDocument> documents);
 
-        public void ReplaceOne(Expression<Func<TDocument, bool>> filter,
-                               TDocument document,
-                               ReplaceOptions replaceOptions = default);
+        public GoReplaceResult ReplaceOne(Expression<Func<TDocument, bool>> filter,
+                                          TDocument document,
+                                          bool isUpsert = false);
 
-        public Task ReplaceOneAsync(Expression<Func<TDocument, bool>> filter,
-                                    TDocument document,
-                                    ReplaceOptions replaceOptions = default);
+        public Task<GoReplaceResult> ReplaceOneAsync(Expression<Func<TDocument, bool>> filter,
+                                                     TDocument document,
+                                                     bool isUpsert = false);
 
         public long Count(Expression<Func<TDocument, bool>> filter);
 
@@ -51,5 +51,13 @@ namespace MongoGogo.Connection
 
         public Task<GoUpdateResult> UpdateManyAsync(Expression<Func<TDocument, bool>> filter,
                                                     Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set);
+
+        public GoDeleteResult DeleteOne(Expression<Func<TDocument, bool>> filter);
+
+        public Task<GoDeleteResult> DeleteOneAsync(Expression<Func<TDocument, bool>> filter);
+
+        public GoDeleteResult DeleteMany(Expression<Func<TDocument, bool>> filter);
+
+        public Task<GoDeleteResult> DeleteManyAsync(Expression<Func<TDocument, bool>> filter);
     }
 }

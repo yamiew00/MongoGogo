@@ -73,14 +73,22 @@ namespace MongoGogo.Connection
             return MongoCollection.InsertOneAsync(document);
         }
 
-        public virtual void ReplaceOne(Expression<Func<TDocument, bool>> filter, TDocument document, ReplaceOptions replaceOptions = default)
+        public virtual GoReplaceResult ReplaceOne(Expression<Func<TDocument, bool>> filter, TDocument document, bool isUpsert = false)
         {
-            MongoCollection.ReplaceOne(filter, document, replaceOptions);
+            var replaceResult = MongoCollection.ReplaceOne(filter, document, new ReplaceOptions
+            {
+                IsUpsert = isUpsert
+            });
+            return new GoReplaceResult(replaceResult);
         }
 
-        public virtual Task ReplaceOneAsync(Expression<Func<TDocument, bool>> filter, TDocument document, ReplaceOptions replaceOptions = default)
+        public virtual async Task<GoReplaceResult> ReplaceOneAsync(Expression<Func<TDocument, bool>> filter, TDocument document, bool isUpsert = false)
         {
-            return MongoCollection.ReplaceOneAsync(filter, document, replaceOptions);
+            var replaceResult = await MongoCollection.ReplaceOneAsync(filter, document, new ReplaceOptions
+            {
+                IsUpsert = isUpsert
+            });
+            return new GoReplaceResult(replaceResult);
         }
 
         public GoUpdateResult UpdateOne(Expression<Func<TDocument, bool>> filter,
@@ -90,8 +98,8 @@ namespace MongoGogo.Connection
             var updateBuilder = new GoUpdateBuilder<TDocument>();
             var mongoUpdateDefinition = set.Compile()
                                            .Invoke(updateBuilder).MongoUpdateDefinition;
-            var mongoUpdateResult = MongoCollection.UpdateOne(filter, 
-                                          mongoUpdateDefinition, 
+            var mongoUpdateResult = MongoCollection.UpdateOne(filter,
+                                          mongoUpdateDefinition,
                                           new UpdateOptions
                                           {
                                               IsUpsert = isUpsert
@@ -135,6 +143,26 @@ namespace MongoGogo.Connection
             var mongoUpdateResult = await MongoCollection.UpdateManyAsync(filter,
                                                                           mongoUpdateDefinition);
             return new GoUpdateResult(mongoUpdateResult);
+        }
+
+        public GoDeleteResult DeleteOne(Expression<Func<TDocument, bool>> filter)
+        {
+            return new GoDeleteResult(MongoCollection.DeleteOne(filter));
+        }
+
+        public async Task<GoDeleteResult> DeleteOneAsync(Expression<Func<TDocument, bool>> filter)
+        {
+            return new GoDeleteResult( await MongoCollection.DeleteOneAsync(filter));
+        }
+
+        public GoDeleteResult DeleteMany(Expression<Func<TDocument, bool>> filter)
+        {
+            return new GoDeleteResult(MongoCollection.DeleteMany(filter));
+        }
+
+        public async Task<GoDeleteResult> DeleteManyAsync(Expression<Func<TDocument, bool>> filter)
+        {
+            return new GoDeleteResult(await MongoCollection.DeleteManyAsync(filter));
         }
     }
 }

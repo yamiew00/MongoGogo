@@ -11,9 +11,9 @@ namespace MongoGogo.Connection
         /// <summary>
         /// Database Name. Null value if database name equals to type name.
         /// </summary>
-        public string? GivenName { get; private set; }
+        public string GivenName { get; private set; }
 
-        public MongoDatabaseAttribute(string? dbName = default)
+        public MongoDatabaseAttribute(string dbName = default)
         {
             this.GivenName = dbName;
         }

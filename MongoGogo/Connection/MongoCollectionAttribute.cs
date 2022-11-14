@@ -16,9 +16,9 @@ namespace MongoGogo.Connection
         /// <summary>
         /// Collection Name. Null value if collection name equals to type name.
         /// </summary>
-        public string? GivenName { get; private set; }
+        public string GivenName { get; private set; }
 
-        public MongoCollectionAttribute(Type fromDatabase, string? collectionName = default)
+        public MongoCollectionAttribute(Type fromDatabase, string collectionName = default)
         {
             this.DbType = fromDatabase;
             this.GivenName = collectionName;
