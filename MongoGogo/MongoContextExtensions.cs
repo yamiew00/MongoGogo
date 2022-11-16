@@ -10,6 +10,27 @@ namespace MongoGogo
 {
     public static class ServiceCollectionExtension
     {
+        public static IServiceCollection AddMongoContext(this IServiceCollection serviceCollection,
+                                                         Type contextType,
+                                                         object mongoContext,
+                                                         LifeCycleOption option = default)
+        {
+            return serviceCollection.AddMongoContext(contextType, _ => mongoContext, option);
+        }
+
+        public static IServiceCollection AddMongoContext(this IServiceCollection serviceCollection,
+                                                         Type contextType,
+                                                         Func<IServiceProvider, object> implementationFactory,
+                                                         LifeCycleOption option = default)
+        {
+            //lifecycle option
+            option ??= new LifeCycleOption();
+
+            serviceCollection.AddService(option.ContextLifeCycle, contextType, implementationFactory);
+            return serviceCollection.RegisterElementsInContext(option);
+        }
+
+
         /// <summary>
         /// Add an IGoContext to .net dependency injection container with scope lifecycle.
         /// </summary>
@@ -20,10 +41,9 @@ namespace MongoGogo
         public static IServiceCollection AddMongoContext<TContext>(this IServiceCollection serviceCollection,
                                                                    TContext mongoContext,
                                                                    LifeCycleOption option = default)
-            where TContext : IGoContext<TContext>
+            where TContext : class, IGoContext<TContext>
         {
-            return serviceCollection.AddMongoContext<TContext>(_ => mongoContext,
-                                                               option);
+            return serviceCollection.AddMongoContext(_ => mongoContext,option);
         }
 
         /// <summary>
@@ -36,16 +56,23 @@ namespace MongoGogo
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public static IServiceCollection AddMongoContext<TContext>(this IServiceCollection serviceCollection,
-                                                                   Func<IServiceProvider, object> implementationFactory,
+                                                                   Func<IServiceProvider, TContext> implementationFactory,
                                                                    LifeCycleOption option = default)
-                where TContext : IGoContext<TContext>
+                where TContext : class, IGoContext<TContext>
         {
+
             //lifecycle option
             option ??= new LifeCycleOption();
 
             //di of this implemented class, with option lifecycle
             serviceCollection.AddService(option.ContextLifeCycle, typeof(TContext), implementationFactory);
 
+            return serviceCollection.RegisterElementsInContext(option);
+        }
+
+        private static IServiceCollection RegisterElementsInContext(this IServiceCollection serviceCollection, 
+                                                                    LifeCycleOption option = default)
+        {
             //alltypes
             IEnumerable<Type> AllTypes = AppDomain.CurrentDomain
                                                   .GetAssemblies()
@@ -154,6 +181,31 @@ namespace MongoGogo
             else if (lifeCycleType == LifeCycleType.Transient)
             {
                 serviceCollection.AddTransient(serviceType, implementationFactory);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+            return serviceCollection;
+        }
+
+        private static IServiceCollection AddService<TService>(this IServiceCollection serviceCollection,
+                                                               LifeCycleType lifeCycleType,
+                                                               Type serviceType,
+                                                               Func<IServiceProvider, TService> implementationFactory)
+            where TService : class
+        {
+            if (lifeCycleType == LifeCycleType.Singleton)
+            {
+                serviceCollection.AddSingleton(implementationFactory);
+            }
+            else if (lifeCycleType == LifeCycleType.Scoped)
+            {
+                serviceCollection.AddScoped(implementationFactory);
+            }
+            else if (lifeCycleType == LifeCycleType.Transient)
+            {
+                serviceCollection.AddTransient(implementationFactory);
             }
             else
             {
