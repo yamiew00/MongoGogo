@@ -44,12 +44,18 @@ namespace MongoGogo.Connection
         {
             goFindOption ??= new GoFindOption();
             var builder = new GoProjectionBuilder<TDocument>();
-            return MongoCollection.Find(filter, new FindOptions
-                                   {
-                                       AllowDiskUse = goFindOption.AllowDiskUse,
-                                   })
-                                   .Project<TDocument>(projection?.Compile().Invoke(builder).MongoProjectionDefinition)
-                                  .Limit(goFindOption.Limit)
+
+            var findFluent = MongoCollection.Find(filter, new FindOptions
+            {
+                AllowDiskUse = goFindOption.AllowDiskUse,
+            });
+
+            if(projection != null)
+            {
+                findFluent = findFluent.Project<TDocument>(projection?.Compile().Invoke(builder).MongoProjectionDefinition);
+            }
+
+            return findFluent.Limit(goFindOption.Limit)
                                   .Skip(goFindOption.Skip)
                                   .ToEnumerable();
         }
@@ -65,13 +71,18 @@ namespace MongoGogo.Connection
         {
             goFindOption ??= new GoFindOption();
             var builder = new GoProjectionBuilder<TDocument>();
-            return (await MongoCollection.FindAsync(filter, new FindOptions<TDocument, TDocument>
+            var findOptions = new FindOptions<TDocument, TDocument>
             {
-                Projection = projection?.Compile().Invoke(builder).MongoProjectionDefinition,
                 AllowDiskUse = goFindOption.AllowDiskUse,
                 Limit = goFindOption.Limit,
                 Skip = goFindOption.Skip
-            })).ToEnumerable();
+            };
+            if(projection != null)
+            {
+                findOptions.Projection = projection?.Compile().Invoke(builder).MongoProjectionDefinition;
+            }
+
+            return (await MongoCollection.FindAsync(filter, findOptions)).ToEnumerable();
         }
 
         public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter)
