@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using MongoGogo.Connection;
+using MongoGogo.Container;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -235,6 +236,30 @@ namespace MongoGogo
             {
                 throw new NotImplementedException();
             }
+            return serviceCollection;
+        }
+
+        public static IServiceCollection AddMongoContainer(this IServiceCollection serviceCollection,
+                                                           GoContainer goContainer)
+        {
+            var registrations = goContainer.Registrations;
+
+            foreach (var registration in registrations)
+            {
+                var lifeCycle = registration.LifeTime;
+                if(registration.Instance == null)
+                {
+                    serviceCollection.AddService(lifeCycleType: lifeCycle,
+                                                 serviceType: registration.RegisteredType,
+                                                 implenmentType: registration.MappedType);
+                    continue;
+                }
+
+                serviceCollection.AddService(lifeCycleType: lifeCycle,
+                                             serviceType: registration.RegisteredType,
+                                             implementationFactory: _ => registration.Instance);
+            }
+
             return serviceCollection;
         }
     }

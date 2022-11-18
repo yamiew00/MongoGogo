@@ -56,7 +56,7 @@ namespace MongoGogo.Connection
 
         public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter)
         {
-            return (await MongoCollection.FindAsync(filter)).ToEnumerable();
+            return await (await MongoCollection.FindAsync(filter)).ToListAsync();
         }
 
         public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
@@ -65,13 +65,13 @@ namespace MongoGogo.Connection
         {
             goFindOption ??= new GoFindOption();
             var builder = new GoProjectionBuilder<TDocument>();
-            return (await MongoCollection.FindAsync(filter, new FindOptions<TDocument, TDocument>
+            return await (await MongoCollection.FindAsync(filter, new FindOptions<TDocument, TDocument>
             {
                 Projection = projection?.Compile().Invoke(builder).MongoProjectionDefinition,
                 AllowDiskUse = goFindOption.AllowDiskUse,
                 Limit = goFindOption.Limit,
                 Skip = goFindOption.Skip
-            })).ToEnumerable();
+            })).ToListAsync();
         }
 
         public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter)
