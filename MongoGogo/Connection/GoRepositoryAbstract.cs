@@ -50,7 +50,7 @@ namespace MongoGogo.Connection
                 AllowDiskUse = goFindOption.AllowDiskUse,
             });
 
-            if(projection != null)
+            if (projection != null)
             {
                 findFluent = findFluent.Project<TDocument>(projection?.Compile().Invoke(builder).MongoProjectionDefinition);
             }
@@ -62,7 +62,7 @@ namespace MongoGogo.Connection
 
         public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter)
         {
-            return (await MongoCollection.FindAsync(filter)).ToEnumerable();
+            return await (await MongoCollection.FindAsync(filter)).ToListAsync();
         }
 
         public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
@@ -77,12 +77,13 @@ namespace MongoGogo.Connection
                 Limit = goFindOption.Limit,
                 Skip = goFindOption.Skip
             };
-            if(projection != null)
+
+            if (projection != null)
             {
                 findOptions.Projection = projection?.Compile().Invoke(builder).MongoProjectionDefinition;
             }
 
-            return (await MongoCollection.FindAsync(filter, findOptions)).ToEnumerable();
+            return await (await MongoCollection.FindAsync(filter, findOptions)).ToListAsync();
         }
 
         public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter)
