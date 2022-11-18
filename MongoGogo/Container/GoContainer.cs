@@ -1,8 +1,11 @@
-﻿using MongoGogo.Connection;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoGogo.Connection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace MongoGogo.Container
 {
@@ -32,9 +35,16 @@ namespace MongoGogo.Container
 
             public void AddMongoContext<TContext>(TContext context, LifeCycleOption option = default) where TContext : class, IGoContext<TContext>
             {
-                OuterContainer.Registrations.AddRange(OuterContainer.RegisterDerived(context, option));
+                OuterContainer.Registrations.AddRange(OuterContainer.RegisterContextAndDerived(context, option));
             }
+
+            public void AddMongoContext(Type contextType, object contextInstance, LifeCycleOption option = default)
+            {
+                OuterContainer.Registrations.AddRange(OuterContainer.RegisterContextAndDerived(contextType, contextInstance, option));
+            }
+
         }
+
 
         /// <summary>
         /// Build the composite root.
@@ -47,34 +57,49 @@ namespace MongoGogo.Container
             return this;
         }
 
-        private List<GoRegistration> RegisterDerived<TContext>(TContext context,
+
+        private List<GoRegistration> RegisterContextAndDerived(Type contextType,
+                                                               object contextInstance,
                                                                LifeCycleOption option = default)
-            where TContext : class, IGoContext<TContext>
         {
+            //check type
+            if (contextType == null
+                || !contextType.IsClass
+                || !contextType.GetInterfaces()
+                               .Any(@interface => @interface.GenericEquals(typeof(IGoContext<>)))) 
+                throw new Exception($"{contextType.GetFriendlyName()} must be an implementation of IGoContext<>");
+
             List<GoRegistration> registrations = new List<GoRegistration>();
 
             option ??= new LifeCycleOption();
 
+            //1. IMongoContext<TContext> → context 
+            var iGoContextType = contextType;
+            registrations.Add(new GoRegistration(registeredType: iGoContextType,
+                                                 instance: contextInstance,
+                                                 option.ContextLifeCycle));
+
+            return RegisterDerived(registrations,
+                                   contextType,
+                                   option);
+        }
+
+        private List<GoRegistration> RegisterDerived(List<GoRegistration> registrations,
+                                                     Type contextType,
+                                                     LifeCycleOption option = default)
+        {
             //alltypes
             IEnumerable<Type> AllTypes = AppDomain.CurrentDomain
                                                   .GetAssemblies()
                                                   .SelectMany(s => s.GetTypes());
 
-            //1. IMongoContext<TContext> → context 
-            var iGoContextType = typeof(IGoContext<>).GetGenericTypeDefinition().MakeGenericType(typeof(TContext));
-            registrations.Add(new GoRegistration(registeredType: iGoContextType,
-                                               instance: context,
-                                               option.ContextLifeCycle));
-
 
             //2. 自動注入Database using reflection
             //IDatabase<TDatabase> →  Database<TContext, TDatabase> for all inner class TDatabase in TContext
-            var dbTypes = typeof(TContext).GetNestedTypes();
+            var dbTypes = contextType.GetNestedTypes();
             foreach (var dbType in dbTypes.Where(type => type.GetCustomAttribute<MongoDatabaseAttribute>() != null))
             {
                 //get outer type: this class must be nested.
-                var contextType = typeof(TContext);
-
                 if (contextType.GetInterfaces()
                                .Count(@interface => @interface.GenericEquals(typeof(IGoContext<>))) != 1)
                 {
@@ -151,6 +176,24 @@ namespace MongoGogo.Container
             }
 
             return registrations;
+        }
+
+        private List<GoRegistration> RegisterContextAndDerived<TContext>(TContext context,
+                                                                         LifeCycleOption option = default)
+        where TContext : class, IGoContext<TContext>
+        {
+            List<GoRegistration> registrations = new List<GoRegistration>();
+            option ??= new LifeCycleOption();
+
+            //1. IMongoContext<TContext> → context 
+            var iGoContextType = typeof(IGoContext<>).GetGenericTypeDefinition().MakeGenericType(typeof(TContext));
+            registrations.Add(new GoRegistration(registeredType: iGoContextType,
+                                                 instance: context,
+                                                 option.ContextLifeCycle));
+
+            return RegisterDerived(registrations,
+                                   typeof(TContext),
+                                   option);
         }
     }
 }
