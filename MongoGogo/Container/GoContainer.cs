@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 using MongoGogo.Connection;
 using System;
 using System.Collections.Generic;
@@ -138,13 +139,13 @@ namespace MongoGogo.Container
             foreach (var collectionType in collDict.Where(keyValue => dbTypes.Contains(keyValue.Key))
                                                    .SelectMany(dict => dict.Value))
             {
-                //(1) IGoCollection
+                //(1) IMongoCollection
                 var collectionAttribute = collectionType.GetCustomAttribute<MongoCollectionAttribute>();
                 var dbType = collectionAttribute.DbType;
 
-                var serviceType = typeof(Connection.IGoCollection<>).GetGenericTypeDefinition()
-                                                                  .MakeGenericType(collectionType);
-                var implementType = typeof(GoCollection<,>).GetGenericTypeDefinition()
+                var serviceType = typeof(IMongoCollection<>).GetGenericTypeDefinition()
+                                                            .MakeGenericType(collectionType);
+                var implementType = typeof(MongoCollection<,>).GetGenericTypeDefinition()
                                                                .MakeGenericType(dbType, collectionType);
 
                 registrations.Add(new GoRegistration(registeredType: serviceType,

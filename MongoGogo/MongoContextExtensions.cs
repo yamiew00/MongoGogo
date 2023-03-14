@@ -126,13 +126,13 @@ namespace MongoGogo
             //                                 <2> (low prior) default implementation, which is GoRepository
             foreach (var collectionType in AllTypes.Where(type => type.GetCustomAttribute<MongoCollectionAttribute>() != null))
             {
-                //(1) IGoCollection
+                //(1) IMongoCollection
                 var collectionAttribute = collectionType.GetCustomAttribute<MongoCollectionAttribute>();
                 var dbType = collectionAttribute.DbType;
 
-                var serviceType = typeof(Connection.IGoCollection<>).GetGenericTypeDefinition()
-                                                                  .MakeGenericType(collectionType);
-                var implementType = typeof(GoCollection<,>).GetGenericTypeDefinition()
+                var serviceType = typeof(IMongoCollection<>).GetGenericTypeDefinition()
+                                                            .MakeGenericType(collectionType);
+                var implementType = typeof(MongoCollection<,>).GetGenericTypeDefinition()
                                                                .MakeGenericType(dbType, collectionType);
 
                 serviceCollection.AddService(option.CollectionLifeCycle,

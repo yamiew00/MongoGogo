@@ -1,4 +1,6 @@
 ﻿
+using MongoDB.Driver;
+
 namespace MongoGogo.Connection
 {
     /// <summary>
@@ -7,7 +9,7 @@ namespace MongoGogo.Connection
     /// <typeparam name="TDocument"></typeparam>
     internal class GoRepository<TDocument> : GoRepositoryAbstract<TDocument>
     {
-        public GoRepository(IGoCollection<TDocument> collection) : base(collection)
+        public GoRepository(IMongoCollection<TDocument> collection) : base(collection)
         {
         }
     }

@@ -18,7 +18,7 @@ namespace MongoGogo.Connection
         /// </summary>
         public IMongoCollection<TDocument> MongoCollection { get; private set; }
 
-        public GoRepositoryAbstract(IGoCollection<TDocument> collection)
+        public GoRepositoryAbstract(IMongoCollection<TDocument> collection)
         {
             MongoCollection = collection;
         }
