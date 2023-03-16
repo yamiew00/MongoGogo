@@ -1,12 +1,9 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using MongoGogo.Connection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json.Serialization;
 
 namespace MongoGogo.Container
 {
@@ -38,50 +35,34 @@ namespace MongoGogo.Container
             {
                 OuterContainer.Registrations.AddRange(OuterContainer.RegisterContextAndDerived(context, option));
             }
-
-            public void AddMongoContext(Type contextType, object contextInstance, LifeCycleOption option = default)
-            {
-                OuterContainer.Registrations.AddRange(OuterContainer.RegisterContextAndDerived(contextType, contextInstance, option));
-            }
-
         }
-
 
         /// <summary>
         /// Build the composite root.
         /// </summary>
         /// <param name="option"></param>
         /// <returns></returns>
-        public GoContainer Composite(Action<ServiceBuilder> option)
+        public GoContainer Build(Action<ServiceBuilder> option)
         {
             option.Invoke(_Builder);
             return this;
         }
 
-
-        private List<GoRegistration> RegisterContextAndDerived(Type contextType,
-                                                               object contextInstance,
-                                                               LifeCycleOption option = default)
+        private List<GoRegistration> RegisterContextAndDerived<TContext>(TContext context,
+                                                                         LifeCycleOption option = default)
+            where TContext : class, IGoContext<TContext>
         {
-            //check type
-            if (contextType == null
-                || !contextType.IsClass
-                || !contextType.GetInterfaces()
-                               .Any(@interface => @interface.GenericEquals(typeof(IGoContext<>)))) 
-                throw new Exception($"{contextType.GetFriendlyName()} must be an implementation of IGoContext<>");
-
             List<GoRegistration> registrations = new List<GoRegistration>();
-
             option ??= new LifeCycleOption();
 
             //1. IMongoContext<TContext> → context 
-            var iGoContextType = contextType;
+            var iGoContextType = typeof(IGoContext<>).GetGenericTypeDefinition().MakeGenericType(typeof(TContext));
             registrations.Add(new GoRegistration(registeredType: iGoContextType,
-                                                 instance: contextInstance,
+                                                 instance: context,
                                                  option.ContextLifeCycle));
 
             return RegisterDerived(registrations,
-                                   contextType,
+                                   typeof(TContext),
                                    option);
         }
 
@@ -93,7 +74,6 @@ namespace MongoGogo.Container
             IEnumerable<Type> AllTypes = AppDomain.CurrentDomain
                                                   .GetAssemblies()
                                                   .SelectMany(s => s.GetTypes());
-
 
             //2. 自動注入Database using reflection
             //IDatabase<TDatabase> →  Database<TContext, TDatabase> for all inner class TDatabase in TContext
@@ -176,24 +156,6 @@ namespace MongoGogo.Container
             }
 
             return registrations;
-        }
-
-        private List<GoRegistration> RegisterContextAndDerived<TContext>(TContext context,
-                                                                         LifeCycleOption option = default)
-        where TContext : class, IGoContext<TContext>
-        {
-            List<GoRegistration> registrations = new List<GoRegistration>();
-            option ??= new LifeCycleOption();
-
-            //1. IMongoContext<TContext> → context 
-            var iGoContextType = typeof(IGoContext<>).GetGenericTypeDefinition().MakeGenericType(typeof(TContext));
-            registrations.Add(new GoRegistration(registeredType: iGoContextType,
-                                                 instance: context,
-                                                 option.ContextLifeCycle));
-
-            return RegisterDerived(registrations,
-                                   typeof(TContext),
-                                   option);
         }
     }
 }
