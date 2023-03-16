@@ -8,17 +8,17 @@ using System.Threading.Tasks;
 namespace MongoGogo.Connection
 {
     /// <summary>
-    /// An abstract mongo repository.
+    /// An abstract mongo collection.
     /// </summary>
     /// <typeparam name="TDocument">mongo document</typeparam>
-    public abstract class GoRepositoryAbstract<TDocument> : IGoRepository<TDocument>
+    public abstract class GoCollectionAbstract<TDocument> : IGoCollection<TDocument>
     {
         /// <summary>
         /// the IMongoCollection<TDocuement> instance.
         /// </summary>
         public IMongoCollection<TDocument> MongoCollection { get; private set; }
 
-        public GoRepositoryAbstract(IMongoCollection<TDocument> collection)
+        public GoCollectionAbstract(IMongoCollection<TDocument> collection)
         {
             MongoCollection = collection;
         }

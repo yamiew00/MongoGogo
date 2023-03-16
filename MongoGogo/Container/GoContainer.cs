@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 namespace MongoGogo.Container
 {
     /// <summary>
-    /// A container to deal with the composition root of IGoContext and its corresponding IGoDatabse.IGoCollection and IGoRepository.
+    /// A container to deal with the composition root of IGoContext and its corresponding IGoDatabse.IGoCollection and IGoCollection.
     /// </summary>
     public class GoContainer
     {
@@ -120,11 +120,10 @@ namespace MongoGogo.Container
                                                    option.DatabaseLifeCycle));
             }
 
-
             //3. inject IGoCollections using reflection
-            //  (1)IGoCollection<TDocument> → GoCollection<TDatabase, TDocument> for all TMongoDatabase and corresponding TDocument
-            //  (2)IGoRepository<TDocument> → <1> (high prior) some concrete class MyRepository<TDocuement> : GoRepositoryAbstract
-            //                                 <2> (low prior) default implementation, which is GoRepository
+            //  (1)IMongoGoCollection<TDocument> → MongoCollection<TDatabase, TDocument> for all TMongoDatabase and corresponding TDocument
+            //  (2)IGoCollection<TDocument> → <1> (high prior) some concrete class MyGoCollection<TDocuement> : GoCollectionAbstract
+            //                                 <2> (low prior) default implementation, which is GoCollection
 
             //todo: not a perfect algorithm. Should be dealt globally
             var collDict = AllTypes.Where(type => type.GetCustomAttribute<MongoCollectionAttribute>() != null)
@@ -150,30 +149,30 @@ namespace MongoGogo.Container
 
                 registrations.Add(new GoRegistration(registeredType: serviceType,
                                                    mappedType: implementType,
-                                                   option.CollectionLifeCycle));
+                                                   option.MongoCollectionLifeCycle));
 
-                //(2) IGoRepository
-                var customImplementType = typeof(IGoRepository<>).GetGenericTypeDefinition()
+                //(2) IGoCollection
+                var customImplementType = typeof(IGoCollection<>).GetGenericTypeDefinition()
                                                                  .MakeGenericType(collectionType);
-                //this types shows all concrete type excepts GoRepository<TDocument> that implement IGoRepository<TDocument> 
+                //this types shows all concrete type excepts GoCollection<TDocument> that implement IGoCollection<TDocument> 
                 var customConcreteImplementTypes = AllTypes.Where(type => type.IsClass &&
                                                                           !type.IsAbstract &&
-                                                                          (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(GoRepository<>)) &&
+                                                                          (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(GoCollection<>)) &&
                                                                           type.GetInterfaces().Any(@interface => @interface == customImplementType))
                                                             .ToList();
 
-                Type repositoryServiceType = typeof(IGoRepository<>).GetGenericTypeDefinition().MakeGenericType(collectionType);
-                Type repositoryImplementType = customConcreteImplementTypes.Count switch
+                Type goCollectionServiceType = typeof(IGoCollection<>).GetGenericTypeDefinition().MakeGenericType(collectionType);
+                Type goCollectionImplementType = customConcreteImplementTypes.Count switch
                 {
-                    0 => typeof(GoRepository<>).GetGenericTypeDefinition().MakeGenericType(collectionType),
+                    0 => typeof(GoCollection<>).GetGenericTypeDefinition().MakeGenericType(collectionType),
                     1 => customConcreteImplementTypes.First(),
                     //the implementation mapping is one-to-one
                     _ => throw new Exception($"too many implementation: {string.Join(',', customConcreteImplementTypes.Select(type => type.GetFriendlyName()))}")
                 };
 
-                registrations.Add(new GoRegistration(registeredType: repositoryServiceType,
-                                                   mappedType: repositoryImplementType,
-                                                   option.RepositoryLifeCycle));
+                registrations.Add(new GoRegistration(registeredType: goCollectionServiceType,
+                                                     mappedType: goCollectionImplementType,
+                                                     option.GoCollectionLifeCycle));
             }
 
             return registrations;

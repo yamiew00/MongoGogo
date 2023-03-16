@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MongoGogo.Connection
 {
-    public interface IGoRepository<TDocument>
+    public interface IGoCollection<TDocument>
     {
         public IMongoCollection<TDocument> MongoCollection { get; }
 
