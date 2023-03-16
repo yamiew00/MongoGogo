@@ -48,6 +48,42 @@ namespace MongoGogo.Container
             return this;
         }
 
+        /// <summary>
+        /// Resolve the instance in your MongoContext. 
+        /// Return null if the type is not implemented properly.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T Resolve<T>() where T : class
+        {
+            return Resolve(typeof(T)) as T;
+        }
+
+        /// <summary>
+        /// Resolve the instance in your MongoContext. 
+        /// Return null if the type is not implemented properly.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public object Resolve(Type type)
+        {
+            var registrationDictionary = Registrations.ToDictionary(reg => reg.RegisteredType);
+            if (!registrationDictionary.TryGetValue(type, out var registration)) throw new Exception($"error resolving type: {type.GetFriendlyName()}");
+
+            //'instance' registration just return the instance
+            if (registration.Instance != null) return registration.Instance;
+
+            //'type' registration need to try resolving using its parameter.
+            var constructorInfo = registration.MappedType
+                                              .GetConstructors()
+                                              .FirstOrDefault();
+            var parameterInfos = constructorInfo.GetParameters();
+            var parameterInstances = parameterInfos.Select(paramInfo => Resolve(paramInfo.ParameterType)).ToArray();
+
+            return Activator.CreateInstance(registration.MappedType, parameterInstances);
+        }
+
         private List<GoRegistration> RegisterContextAndDerived<TContext>(TContext context,
                                                                          LifeCycleOption option = default)
             where TContext : class, IGoContext<TContext>
@@ -61,12 +97,20 @@ namespace MongoGogo.Container
                                                  instance: context,
                                                  option.ContextLifeCycle));
 
-            return RegisterDerived(registrations,
+            return GoContainer.RegisterDerived(registrations,
                                    typeof(TContext),
                                    option);
         }
 
-        private List<GoRegistration> RegisterDerived(List<GoRegistration> registrations,
+        /// <summary>
+        /// The most important part of this package.
+        /// </summary>
+        /// <param name="registrations"></param>
+        /// <param name="contextType"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private static List<GoRegistration> RegisterDerived(List<GoRegistration> registrations,
                                                      Type contextType,
                                                      LifeCycleOption option = default)
         {
