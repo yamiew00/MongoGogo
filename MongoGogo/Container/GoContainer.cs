@@ -119,7 +119,7 @@ namespace MongoGogo.Container
                                                   .GetAssemblies()
                                                   .SelectMany(s => s.GetTypes());
 
-            //2. 自動注入Database using reflection
+            //2. auto inject Database using reflection
             //IDatabase<TDatabase> →  Database<TContext, TDatabase> for all inner class TDatabase in TContext
             var dbTypes = contextType.GetNestedTypes();
             foreach (var dbType in dbTypes.Where(type => type.GetCustomAttribute<MongoDatabaseAttribute>() != null))
@@ -144,10 +144,11 @@ namespace MongoGogo.Container
                                                    option.DatabaseLifeCycle));
             }
 
-            //3. inject IGoCollections using reflection
+            //3. inject IGoCollections, IMongoCollections and IGoCollectionObservers using reflection
             //  (1)IMongoGoCollection<TDocument> → MongoCollection<TDatabase, TDocument> for all TMongoDatabase and corresponding TDocument
             //  (2)IGoCollection<TDocument> → <1> (high prior) some concrete class MyGoCollection<TDocuement> : GoCollectionAbstract
             //                                 <2> (low prior) default implementation, which is GoCollection
+            //  (3)IGoCollectionObserver<TDocument> → GoCollectionObserver<TDocument>
 
             //todo: not a perfect algorithm. Should be dealt globally
             var collDict = AllTypes.Where(type => type.GetCustomAttribute<MongoCollectionAttribute>() != null)
@@ -197,6 +198,16 @@ namespace MongoGogo.Container
                 registrations.Add(new GoRegistration(registeredType: goCollectionServiceType,
                                                      mappedType: goCollectionImplementType,
                                                      option.GoCollectionLifeCycle));
+
+                //(3) IGoCollectionObserver
+                var observerServiceType = typeof(IGoCollectionObserver<>).GetGenericTypeDefinition()
+                                                                         .MakeGenericType(collectionType);
+                var observerImplementType = typeof(GoCollectionObserver<>).GetGenericTypeDefinition()
+                                                                          .MakeGenericType(collectionType);
+
+                registrations.Add(new GoRegistration(registeredType: observerServiceType,
+                                                     mappedType: observerImplementType,
+                                                     option.GoCollectionObserverLifeCycle));
             }
 
             return registrations;

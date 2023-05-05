@@ -1,5 +1,4 @@
-﻿
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 
 namespace MongoGogo.Connection
 {
