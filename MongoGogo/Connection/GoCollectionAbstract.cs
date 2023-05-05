@@ -1,6 +1,7 @@
 ﻿using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -91,9 +92,48 @@ namespace MongoGogo.Connection
             return MongoCollection.Find(filter).Limit(1).FirstOrDefault();
         }
 
+
+        public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter,
+                                         Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                         GoFindOption goFindOption = null)
+        {
+            if(goFindOption == null)
+            {
+                goFindOption = new GoFindOption
+                {
+                    Limit = 1
+                };
+            }
+            else
+            {
+                goFindOption.Limit = 1;
+            }
+
+            return Find(filter, projection, goFindOption).FirstOrDefault();
+        }
+
         public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter)
         {
             return (await MongoCollection.FindAsync(filter)).FirstOrDefault();
+        }
+
+        public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
+                                                  Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                                  GoFindOption goFindOption = null)
+        {
+            if(goFindOption == null)
+            {
+                goFindOption = new GoFindOption
+                {
+                    Limit = 1
+                };
+            }
+            else
+            {
+                goFindOption.Limit = 1;
+            }
+
+            return (await FindAsync(filter, projection, goFindOption)).FirstOrDefault();
         }
 
         public virtual void InsertMany(IEnumerable<TDocument> documents)

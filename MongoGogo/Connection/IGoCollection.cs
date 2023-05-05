@@ -24,7 +24,15 @@ namespace MongoGogo.Connection
 
         public TDocument FindOne(Expression<Func<TDocument, bool>> filter);
 
+        public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
+                                 Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                 GoFindOption goFindOption = default);
+
         public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter);
+
+        public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
+                                            Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                            GoFindOption goFindOption = default);
 
         public void InsertOne(TDocument document);
 
