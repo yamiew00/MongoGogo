@@ -11,7 +11,7 @@
 - Auto dependency injection for Microsoft.Extensions.DependencyInjection.
 - Provides attributes used for manage databases and collections for each connection.</Description>
     <PackageTags>mongodb,mongo,nosql,repository</PackageTags>
-    <Version>3.2.0</Version>
+    <Version>3.2.1</Version>
     <PackageProjectUrl>https://github.com/yamiew00/MongoGogo</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yamiew00/MongoGogo</RepositoryUrl>
   </PropertyGroup>
@@ -22,8 +22,11 @@
     <None Remove="Connection\Options\**" />
   </ItemGroup>
 
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.16.0" />
   </ItemGroup>
 
