@@ -81,8 +81,11 @@ namespace MongoGogo.Connection
         /// </summary>
         /// <returns></returns>
         private async Task StartOberserve()
-        {
-            var cursor = await MongoCollection.WatchAsync();
+        { 
+            var cursor = await MongoCollection.WatchAsync(new ChangeStreamOptions
+            {
+                FullDocument = ChangeStreamFullDocumentOption.UpdateLookup  //it will cause an instant BsonDocument result in ChangeStreamOperationType.Update
+            });
 
             await cursor.ForEachAsync(change =>
             {
@@ -100,9 +103,7 @@ namespace MongoGogo.Connection
                 //update
                 if (change.OperationType == ChangeStreamOperationType.Update)
                 {
-                    //The updated value can only be found in the database after the change, as the change only carries the key, not all the data.
-                    var key = BsonSerializer.Deserialize<TDocument>(change.DocumentKey);
-                    var updateValue = MongoCollection.Find<TDocument>(x => x._id == key._id).Limit(1).ToList().FirstOrDefault();
+                    TDocument updateValue = change.FullDocument;
 
                     foreach (var action in UpdateActions)
                     {
