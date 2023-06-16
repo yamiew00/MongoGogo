@@ -75,5 +75,10 @@ namespace MongoGogo.Connection
         public GoDeleteResult DeleteMany(Expression<Func<TDocument, bool>> filter);
 
         public Task<GoDeleteResult> DeleteManyAsync(Expression<Func<TDocument, bool>> filter);
+
+        /// <summary>
+        /// Create new IGoBulker instance of this collection.
+        /// </summary>
+        public IGoBulker<TDocument> NewBulker();
     }
 }

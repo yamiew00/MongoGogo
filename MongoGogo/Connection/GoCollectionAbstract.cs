@@ -247,5 +247,10 @@ namespace MongoGogo.Connection
         {
             return new GoDeleteResult(await MongoCollection.DeleteManyAsync(filter));
         }
+
+        public IGoBulker<TDocument> NewBulker()
+        {
+            return new GoBulker<TDocument>(MongoCollection);
+        }
     }
 }
