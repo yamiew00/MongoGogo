@@ -3,7 +3,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MongoGogo.Connection
@@ -13,7 +12,7 @@ namespace MongoGogo.Connection
     /// It will notify subscribers when the collection undergoes insertions, deletions, updates, or replacements
     /// </summary>
     /// <typeparam name="TDocument"> mongo document</typeparam>
-    public class GoCollectionObserver<TDocument> : IGoCollectionObserver<TDocument> where TDocument : GoDocument
+    public class GoCollectionObserver<TDocument> : IGoCollectionObserver<TDocument>
     {
         private readonly IMongoCollection<TDocument> MongoCollection;
 
@@ -125,7 +124,7 @@ namespace MongoGogo.Connection
                 //delete
                 if (change.OperationType == ChangeStreamOperationType.Delete)
                 {
-                    ObjectId _id = BsonSerializer.Deserialize<TDocument>(change.DocumentKey)._id;
+                    ObjectId _id = BsonSerializer.Deserialize<GoDocument>(change.DocumentKey)._id;
                     foreach (var action in DeleteActions)
                     {
                         action.Invoke(_id);

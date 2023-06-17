@@ -199,18 +199,15 @@ namespace MongoGogo.Container
                                                      mappedType: goCollectionImplementType,
                                                      option.GoCollectionLifeCycle));
 
-                //(3) IGoCollectionObserver<TDocument> where TDocument : GoDocument
-                if (typeof(GoDocument).IsAssignableFrom(collectionType))
-                {
-                    var observerServiceType = typeof(IGoCollectionObserver<>).GetGenericTypeDefinition()
-                                                                         .MakeGenericType(collectionType);
-                    var observerImplementType = typeof(GoCollectionObserver<>).GetGenericTypeDefinition()
-                                                                              .MakeGenericType(collectionType);
+                //(3) for each IGoCollection<TDocument>, there is an IGoCollectionObserver<TDocument>
+                var observerServiceType = typeof(IGoCollectionObserver<>).GetGenericTypeDefinition()
+                                                                        .MakeGenericType(collectionType);
+                var observerImplementType = typeof(GoCollectionObserver<>).GetGenericTypeDefinition()
+                                                                            .MakeGenericType(collectionType);
 
-                    registrations.Add(new GoRegistration(registeredType: observerServiceType,
-                                                         mappedType: observerImplementType,
-                                                         option.GoCollectionObserverLifeCycle));
-                }
+                registrations.Add(new GoRegistration(registeredType: observerServiceType,
+                                                        mappedType: observerImplementType,
+                                                        option.GoCollectionObserverLifeCycle));
             }
 
             return registrations;

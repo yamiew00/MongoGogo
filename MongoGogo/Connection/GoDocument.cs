@@ -3,10 +3,13 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace MongoGogo.Connection
 {
+    /// <summary>
+    ///  A MongoDB document in the database.
+    /// </summary>
     public class GoDocument
     {
         /// <summary>
-        ///  A MongoDB document in the database.
+        /// The _id field necessary for every document.
         /// </summary>
         [BsonId]
         [BsonElement("_id")]

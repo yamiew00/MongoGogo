@@ -8,7 +8,7 @@ namespace MongoGogo.Connection
     /// It will notify subscribers when the collection undergoes insertions, deletions, updates, or replacements
     /// </summary>
     /// <typeparam name="TDocument"> mongo document</typeparam>
-    public interface IGoCollectionObserver<TDocument> where TDocument : GoDocument
+    public interface IGoCollectionObserver<TDocument>
     {
         /// <summary>
         /// Subscribe to the insert event with the specified action. The action will be executed when a document is inserted.
