@@ -156,41 +156,41 @@ namespace MongoGogo.Connection
         /// Updates a single document matching the filter.
         /// </summary>
         /// <param name="filter">The filter to select the document.</param>
-        /// <param name="set">The update operation to apply.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
         /// <param name="isUpsert">Whether to create a new document if no match is found.</param>
         /// <returns>The result of the update operation.</returns>
         public GoUpdateResult UpdateOne(Expression<Func<TDocument, bool>> filter,
-                                        Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
+                                        Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
                                         bool isUpsert = false);
 
         /// <summary>
         /// Asynchronously updates a single document matching the filter.
         /// </summary>
         /// <param name="filter">The filter to select the document.</param>
-        /// <param name="set">The update operation to apply.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
         /// <param name="isUpsert">Whether to create a new document if no match is found.</param>
         /// <returns>The result of the update operation.</returns>
         public Task<GoUpdateResult> UpdateOneAsync(Expression<Func<TDocument, bool>> filter,
-                                                   Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
+                                                   Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
                                                    bool isUpsert = false);
 
         /// <summary>
         /// Updates multiple documents matching the filter.
         /// </summary>
         /// <param name="filter">The filter to select the documents.</param>
-        /// <param name="set">The update operation to apply.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
         /// <returns>The result of the update operation.</returns>
         public GoUpdateResult UpdateMany(Expression<Func<TDocument, bool>> filter,
-                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set);
+                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder);
 
         /// <summary>
         /// Asynchronously updates multiple documents matching the filter.
         /// </summary>
         /// <param name="filter">The filter to select the documents.</param>
-        /// <param name="set">The update operation to apply.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
         /// <returns>The result of the update operation.</returns>
         public Task<GoUpdateResult> UpdateManyAsync(Expression<Func<TDocument, bool>> filter,
-                                                    Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set);
+                                                    Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder);
 
         /// <summary>
         /// Deletes a single document matching the filter.
