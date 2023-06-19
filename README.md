@@ -5,62 +5,79 @@
   #### Key Features
 
   - An ORM-like implementation using [MongoDB.Driver](https://www.mongodb.com/docs/drivers/csharp/), which simplifies database interactions.
-  - Automatic implementation of dependency injection for [Microsoft.Extensions.DependencyInjection](https://www.nuget.org/packages/Microsoft.Extensions.DependencyInjection.Abstractions), streamlining the setup process.
-  - Provides attributes for managing `databases` and `collections` for each `connection`, allowing for easy configuration and customization.
-  - Each interface is a unique implementation, with the distinction between different interfaces determined by their respective types.
-
+  
+  - Easily access data.
+  
+  - Inspired by EF Core, offering object-oriented database operations.
+  
+  - Attribute-based management of database objects using [MongoDatabase] and [MongoCollection] attributes.
+  
+  - Seamless integration with Microsoft.Extensions.DependencyInjection for easy dependency injection setup.
+  
+  - Support for MongoDB change stream, allowing real-time monitoring and processing of database changes.
+  
+  - Bulk Operations support for efficient execution of large-scale data operations.
+  
+    
+  
   ##### **Install via .NET CLI**
-
+  
   ```csharp
   dotnet add package MongoGogo 
   ```
-
-  #### **Example**
-
-  - After few steps of `configuration` and `class building`(introduced later), you can easily get your `Collection` in abstract through the dependency resolution system.
-
-  ```c#
-  public class MyController : ControllerBase
-  {
-      private readonly IGoCollection<Hospital> HospitalRepository;
   
-      public MyController(IGoCollection<Hospital> hospitalRepository)
-      {
-        this.HospitalRepository = hospitalRepository;
-      }
-  }
-  ```
-
-  - Easily access data.
-
+  
+  
+  #### **Example**
+  
+  - Few steps of `configuration` and `class building`(introduced later) to get `Collection` in abstract through the dependency resolution system.
+  
   ```c#
   public class MyController : ControllerBase
   {
-      [HttpGet("IGoCollection<Hospital>_GetList")]
+      private readonly IGoCollection<Hospital> _hospitalCollection;
+  
+      public MyController(IGoCollection<Hospital> hospitalCollection)
+      {
+        this._hospitalCollection = hospitalCollection;
+      }
+      
+      [HttpGet("GetHospitalsAsync")]
       public async Task<IActionResult> Hospitals()
       {
-          var hospitals = await HospitalRepository.FindAsync(_ => true);
+          var hospitals = await _hospitalCollection.FindAsync(_ => true);
+          return Ok(hospitals);
+      }
+      
+      [HttpGet("GetHospitals")]
+      public async Task<IActionResult> Hospitals()
+      {
+          var hospitals = _hospitalCollection.Find(_ => true);
           return Ok(hospitals);
       }
   }
   ```
-
+  
+  
+  
+  
+  
   - Additionally, MongoGogo provides abstract access to any `Collection`, `Database`, and `context`!
-
+  
   ```c#
   public class MyController : ControllerBase
   {
-      private readonly IGoContext<MyMongoDBContext> MyContext;
-      private readonly IGoDatabase<MyMongoDBContext.City> CityDatabase;
-      private readonly IGoCollection<Hospital> HospitalCollection;
+      private readonly IGoContext<MyMongoDBContext> _myContext;
+      private readonly IGoDatabase<MyMongoDBContext.City> _cityDatabase;
+      private readonly IGoCollection<Hospital> _hospitalCollection;
   
       public MyController(IGoContext<MyMongoDBContext> myContext,
                           IGoDatabase<MyMongoDBContext.City> cityDatabase,
                           IGoCollection<Hospital> hospitalCollection)
       {
-          this.MyContext = myContext;
-          this.CityDatabase = cityDatabase;
-          this.HospitalCollection = hospitalCollection;
+          this._myContext = myContext;
+          this._cityDatabase = cityDatabase;
+          this._hospitalCollection = hospitalCollection;
       }
   }
   ```
@@ -76,24 +93,24 @@
 using MongoDB.Driver;
 public class MyController : ControllerBase
 {
-    [HttpGet("IGoCollection<T>_GetList")]
-    public async Task<IActionResult> Collection()
+    [HttpGet("GetHospitals")]
+    public async Task<IActionResult> Hospitals()
     {
-        var hospitals = (await HospitalCollection.FindAsync(_ => true)).ToEnumerable();
+        var hospitals = _hospitalCollection.Find(_ => true);
         return Ok(hospitals);
     }
 
-    [HttpGet("IGoDatabase<T>_ListAllCollections")]
-    public IActionResult Database()
+    [HttpGet("ListCollections")]
+    public IActionResult ListCollections()
     {
-        var collectionNames = CityDatabase.ListCollectionNames().ToList();
+        var collectionNames = _cityDatabase.ListCollectionNames().ToList();
         return Ok(collectionNames);
     }
 
-    [HttpGet("IGoContext_DeleteDatabasebyName")]
-    public IActionResult Context(string databaseName)
+    [HttpGet("DropDatabase")]
+    public IActionResult DropDatabase(string databaseName)
     {
-        MyContext.DropDatabase(databaseName);
+        _myContext.DropDatabase(databaseName);
         return Ok($"{databaseName} is successfully droped.");
     }
 }
@@ -110,37 +127,31 @@ The build of concrete class `MyMongoDBContext` is introduced next part.
 ```c#
 public void ConfigureServices(IServiceCollection services)
 {
-    services.AddMongoContext(new MyMongoDBContext("my mongodb connection string"));
+	services.AddMongoContext(new MyMongoDBContext("my mongodb connection string"));
+    
+    //...other services
 }
 ```
 
-Alternatively, you can configure the mongoContext through an implementationFactory.
 
-```c#
-public void ConfigureServices(IServiceCollection services)
-{
-    Func<IServiceProvider, object> implementationFactory; //some custom factory
-    services.AddMongoContext<MyMongoDBContext>(implementationFactory);
-}
-```
 
 ------
 
 - LifeCycleOption: `Singleton`, `Scoped`, `Transient`
 
-In addition, you can control the lifecycle of all `IGoContext<T>`, `IGoDatabase<T>`, `IGoCollection<T>`, and `IMongoCollection<T>` using LifeCycleOption. The default is `Scoped`.
+In addition, you can control the lifecycle of all `IGoContext<T>`, `IGoDatabase<T>`, `IGoCollection<T>`, and `IMongoCollection<T>` using LifeCycleOption. The default is `Singleton`.
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddMongoContext(new MyMongoDBContext("my mongodb connection string"),
-                 new LifeCycleOption
-                                 {
-                                     ContextLifeCycle = LifeCycleType.Singleton,
-                                     DatabaseLifeCycle = LifeCycleType.Scoped,
-                   GoCollectionLifeCycle = LifeCycleType.Transient,
-                                     MongoCollectionLifeCycle = LifeCycleType.Scoped
-                                 });
+                 			 new LifeCycleOption
+                             {
+                                 ContextLifeCycle = LifeCycleType.Singleton,
+                                 DatabaseLifeCycle = LifeCycleType.Scoped,
+                                 GoCollectionLifeCycle = LifeCycleType.Transient,
+                                 MongoCollectionLifeCycle = LifeCycleType.Scoped
+                             });
 }
 ```
 
@@ -178,12 +189,16 @@ public abstract class GoContext<TContext> : IGoContext<TContext>
 }
 ```
 
+
+
 **Congratulations!** You have successfully set up the `database` in the `IGoContext`.
 
 A vaild `database` of an `entity/context` must be:
 
 - An `inner class `of `IGoContext<TContext>` which is `public` or `internal`
 - Decorated with the `MongoDatabase` attribute
+
+
 
 ##### **[Collections]**
 
@@ -316,71 +331,83 @@ public class MyClass
 
 - By customizing and extending the functionality provided by the package, you can tailor your solution to your specific needs while still leveraging the powerful features and ease of use provided by the package.
 
-#### **IGoCollection Methods**
+
+
+#### **[IGoCollection\<TDocument>] Methods**
 
 This section showcases the basic methods of `IGoCollection<TDocument>`.
 
 ```c#
-IGoCollection<City> CityCollection;
+IGoCollection<City> _cityCollection;
 ```
+
+
 
 ##### **Count / CountAsync**
 
 ```c#
-var documentCount = CityCollection.Count(city => city.Population >= 1000);
-var documentCountAsync = await CityCollection.CountAsync(city => city.Population >= 1000);
+var documentCount = _cityCollection.Count(city => city.Population >= 1000);
+var documentCountAsync = await _cityCollection.CountAsync(city => city.Population >= 1000);
 ```
+
+
 
 ##### **Find/FindAsync**
 
 ```c#
-var foundDocuments = CityCollection.Find(city => city.Population >= 1000);
-var foundDocumentAsync = await CityCollection.FindAsync(city => city.Population >= 1000);
+var foundDocuments = _cityCollection.Find(city => city.Population >= 1000);
+var foundDocumentAsync = await _cityCollection.FindAsync(city => city.Population >= 1000);
 ```
 
 - with `goFindOption` (optional)
 
 ```c#
-var foundDocuments = CityCollection.Find(city => city.Population >= 1000,
-                                         goFindOption: new GoFindOption
-                                        {
-                                            AllowDiskUse = true,
-                                            Limit = 2,
-                                            Skip = 1
-                                        });
-var foundDocumentAsync = await CityCollection.FindAsync(city => city.Population >= 1000, 
-                                                        goFindOption: new GoFindOption
-                                                        {
-                                                            AllowDiskUse = true,
-                                                            Limit = 2,
-                                                            Skip = 1
-                                                        });
+var foundDocuments = _cityCollection.Find(city => city.Population >= 1000,
+                                          goFindOption: new GoFindOption
+                                         {
+                                             AllowDiskUse = true,
+                                             Limit = 2,
+                                             Skip = 1
+                                         });
+var foundDocumentAsync = await _cityCollection.FindAsync(city => city.Population >= 1000, 
+                                                         goFindOption: new GoFindOption
+                                                         {
+                                                             AllowDiskUse = true,
+                                                             Limit = 2,
+                                                             Skip = 1
+                                                         });
 ```
 
 - field reduction with `projection`(optional)
 
 ```c#
-var reducedDocuments = CityCollection.Find(city => city.Population >= 1000,
-                                           projection: builder => builder.Include(city => city.Population)
-                                                                         .Include(city => city.Name));
-var reducedDocumentAsync = await CityCollection.FindAsync(city => city.Population >= 1000, 
-                                                          projection: builder => builder.Include(city => city.Population)
-                                                                                        .Include(city => city.Name));
+var projectedDocuments = _cityCollection.Find(city => city.Population >= 1000,
+                                              projection: builder => builder.Include(city => city.Population)
+                                                                            .Include(city => city.Name));
+var projectedDocumentAsync = await _cityCollection.FindAsync(city => city.Population >= 1000, 
+                                                             projection: builder => builder.Include(city => city.Population)
+                                                                                           .Include(city => city.Name));
 ```
+
+
 
 ##### **FindOne/FindOneAsync**
 
 ```c#
-var firstOrDefaultDocument = CityCollection.FindOne(city => city.Population >= 1000);
-var firstOrDefaultDocumentAsync = await CityCollection.FindOneAsync(city => city.Population >= 1000);
+var firstOrDefaultDocument = _cityCollection.FindOne(city => city.Population >= 1000);
+var firstOrDefaultDocumentAsync = await _cityCollection.FindOneAsync(city => city.Population >= 1000);
 ```
+
+
 
 ##### **InsertOne/InsertOneAsync**
 
 ```c#
-CityCollection.InsertOne(new City{Name = "New York"});
-await CityCollection.InsertOneAsync(new City{Name = "New York"});
+_cityCollection.InsertOne(new City{Name = "New York"});
+await CityCollection._cityCollection(new City{Name = "New York"});
 ```
+
+
 
 ##### **InsertMany/InsertManyAsync**
 
@@ -392,9 +419,11 @@ var cityList = new List<City>
   new City{Population = 100}
 };
 
-CityCollection.InsertMany(cityList);
-await CityCollection.InsertManyAsync(cityList);
+_cityCollection.InsertMany(cityList);
+await _cityCollection.InsertManyAsync(cityList);
 ```
+
+
 
 ##### **ReplaceOne/ReplaceOneAsync**
 
@@ -404,32 +433,34 @@ var city = new City
   Name = "NewYork_America"
 };
 
-CityCollection.ReplaceOne(c => c.Name == "NewYork",
-              city);
-await CityCollection.ReplaceOneAsync(c => c.Name == "NewYork",
-                   city);
+_cityCollection.ReplaceOne(c => c.Name == "NewYork",
+             			   city);
+await _cityCollection.ReplaceOneAsync(c => c.Name == "NewYork",
+                   					  city);
 ```
 
 - with `upsert`(optional)
 
 ```c#
-CityCollection.ReplaceOne(c => c.Name == "NewYork",
-                          city,
-                          isUpsert: true);
-await CityCollection.ReplaceOneAsync(c => c.Name == "NewYork",
-                                     city,
-                                     isUpsert: true);
+_cityCollection.ReplaceOne(c => c.Name == "NewYork",
+                           city,
+                           isUpsert: true);
+await _cityCollection.ReplaceOneAsync(c => c.Name == "NewYork",
+                                      city,
+                                      isUpsert: true);
 ```
+
+
 
 ##### **UpdateOne/UpdateOneAsync**
 
 ```c#
-CityCollection.UpdateOne(city => city.Name == "New York",
-                         builder => builder.Set(city => city.Name, "New York_America")
-                                   .Set(city => city.Population, 1000));
-await CityCollection.UpdateOneAsync(city => city.Name == "New York",
-                                    builder => builder.Set(city => city.Name, "New York_America")
-                                              .Set(city => city.Population, 1000));
+_cityCollection.UpdateOne(city => city.Name == "New York",
+                          builder => builder.Set(city => city.Name, "New York_America")
+                                            .Set(city => city.Population, 1000));
+await _cityCollection.UpdateOneAsync(city => city.Name == "New York",
+                                     builder => builder.Set(city => city.Name, "New York_America")
+                                                       .Set(city => city.Population, 1000));
 ```
 
 - with `upsert`(optional)
@@ -445,27 +476,103 @@ await CityCollection.UpdateOneAsync(city => city.Name == "New York",
                                    isUpsert: true);
 ```
 
+
+
 ##### **UpdateMany/UpdateManyAsync**
 
 ```c#
-CityCollection.UpdateMany(city => city.Name == "New York",
-                          builder => builder.Set(city => city.Name, "New York_America")
-                                    .Set(city => city.Population, 1000));
-await CityCollection.UpdateManyAsync(city => city.Name == "New York",
-                                     builder => builder.Set(city => city.Name, "New York_America")
-                                               .Set(city => city.Population, 1000));
+_cityCollection.UpdateMany(city => city.Name == "New York",
+                           builder => builder.Set(city => city.Name, "New York_America")
+                                             .Set(city => city.Population, 1000));
+await _cityCollection.UpdateManyAsync(city => city.Name == "New York",
+                                      builder => builder.Set(city => city.Name, "New York_America")
+                                                        .Set(city => city.Population, 1000));
 ```
+
+
 
 ##### **DeleteOne/DeleteOneAsync**
 
 ```c#
-CityCollection.DeleteOne(city => city.Name == "New York");
-await CityCollection.DeleteOneAsync(city => city.Name == "New York");
+_cityCollection.DeleteOne(city => city.Name == "New York");
+await _cityCollection.DeleteOneAsync(city => city.Name == "New York");
 ```
+
+
 
 ##### **DeleteMany/DeleteManyAsync**
 
 ```c#
-CityCollection.DeleteMany(city => city.Name == "New York");
-await CityCollection.DeleteManyAsync(city => city.Name == "New York");
+_cityCollection.DeleteMany(city => city.Name == "New York");
+await _cityCollection.DeleteManyAsync(city => city.Name == "New York");
 ```
+
+
+
+
+
+#### IGoCollectionObserver\<TDocument>
+
+> `IGoCollectionObserver<TDocument>` implements the observer pattern for a collection of `TDocument`. It notifies subscribers when database operations such as `Insert`, `Update`, `Replace`, or `Delete` are performed on the collection.
+
+
+
+Here is an example code for a notification center class that receives notifications when hospital data is updated:
+
+```c#
+public class NotificationCenter
+{
+	public NotificationCenter(IGoCollectionObserver<Hospital> hospitalObserver)
+	{
+		hospitalObserver.OnUpdate(UpdateEvent);
+	}
+	
+	private void UpdateEvent(Hospital hospital) 
+	{
+		//do something with hospital
+	}
+}
+```
+
+Do anything you want in `UpdateEvent` method.
+
+
+
+#### Bulk Operations (IGoBulker\<TDocument>)
+
+> Starts from 4.0.0, bulk write is supported.
+
+
+
+```c#
+public class MyController : ControllerBase
+{
+    private readonly IGoCollection<Hospital> _hospitalCollection;
+
+    public MyController(IGoCollection<Hospital> hospitalCollection)
+    {
+      this._hospitalCollection = hospitalCollection;
+    }
+    
+    [HttpPost("AddHospitalsAsync")]
+    public async Task<IActionResult> AddHospitalsAsync(Hospital hospital)
+    {
+        var goBulker = _hospitalCollection.NewBulker();
+        goBulker.InsertOne(hospital);
+		goBulker.UpdateOne(hos => hos.Name == hospital.Name,
+                           builder =>builder.Set(hos => hos.Population, 0));
+        
+	    await goBulker.SaveChangesAsync();
+        
+        return Ok();
+    }
+}
+```
+
+- Inside the method, a new `goBulker` instance is created using the `NewBulker` method of `IGoCollection`.  The `goBulker` object allows you to organize multiple database operations before saving them to the database.
+- The code adds an insert operation and an update operation to the `goBulker` using the `InsertOne` and `UpdateOne` methods, respectively. The insert operation adds the `hospital` object to the collection, and the update operation sets the population of the hospital with the specified name to 0.
+- Finally, the `SaveChangesAsync` method is called on the `goBulker` object to execute the pending operations and save the changes to the database.
+
+
+
+**By using the `goBulker` object, you can group multiple database operations together and execute them in a single batch, similar to the logic used in EF Core. This can help improve performance and reduce round-trips to the database.**
