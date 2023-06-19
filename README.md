@@ -1,86 +1,96 @@
-- #### **MongoGogo Guide**
+## Links
 
-  > MongoGogo is a generic repository implementation based on ORM-like (Object-Relational Mapping) technology, aimed at helping developers effortlessly interact with databases in their applications. This package is designed to simplify database access, provide a more convenient API, and separate business logic from the details of data storage.
+- [Nuget](https://www.nuget.org/packages/MongoGogo)
 
-  #### Key Features
+- [Release Notes](https://github.com/yamiew00/MongoGogo/releases)
 
-  - An ORM-like implementation using [MongoDB.Driver](https://www.mongodb.com/docs/drivers/csharp/), which simplifies database interactions.
+
+
+## **MongoGogo Guide**
+
+> MongoGogo is a generic repository implementation based on ORM-like (Object-Relational Mapping) technology, aimed at helping developers effortlessly interact with databases in their applications. This package is designed to simplify database access, provide a more convenient API, and separate business logic from the details of data storage.
+
+#### 1. Key Features
+
+- An ORM-like implementation using [MongoDB.Driver](https://www.mongodb.com/docs/drivers/csharp/), which simplifies database interactions.
+
+- Easily access data.
+
+- Inspired by EF Core, offering object-oriented database operations.
+
+- Attribute-based management of database objects using [MongoDatabase] and [MongoCollection] attributes.
+
+- Seamless integration with Microsoft.Extensions.DependencyInjection for easy dependency injection setup.
+
+- Support for MongoDB change stream, allowing real-time monitoring and processing of database changes.
+
+- Bulk Operations support for efficient execution of large-scale data operations.
+
   
-  - Easily access data.
-  
-  - Inspired by EF Core, offering object-oriented database operations.
-  
-  - Attribute-based management of database objects using [MongoDatabase] and [MongoCollection] attributes.
-  
-  - Seamless integration with Microsoft.Extensions.DependencyInjection for easy dependency injection setup.
-  
-  - Support for MongoDB change stream, allowing real-time monitoring and processing of database changes.
-  
-  - Bulk Operations support for efficient execution of large-scale data operations.
-  
+
+##### **Install via .NET CLI**
+
+```csharp
+dotnet add package MongoGogo 
+```
+
+
+
+
+
+#### 2. **Example**
+
+- Few steps of `configuration` and `class building`(introduced later) to get `Collection` in abstract through the dependency resolution system.
+
+```c#
+public class MyController : ControllerBase
+{
+    private readonly IGoCollection<Hospital> _hospitalCollection;
+
+    public MyController(IGoCollection<Hospital> hospitalCollection)
+    {
+      this._hospitalCollection = hospitalCollection;
+    }
     
-  
-  ##### **Install via .NET CLI**
-  
-  ```csharp
-  dotnet add package MongoGogo 
-  ```
-  
-  
-  
-  #### **Example**
-  
-  - Few steps of `configuration` and `class building`(introduced later) to get `Collection` in abstract through the dependency resolution system.
-  
-  ```c#
-  public class MyController : ControllerBase
-  {
-      private readonly IGoCollection<Hospital> _hospitalCollection;
-  
-      public MyController(IGoCollection<Hospital> hospitalCollection)
-      {
+    [HttpGet("GetHospitalsAsync")]
+    public async Task<IActionResult> Hospitals()
+    {
+        var hospitals = await _hospitalCollection.FindAsync(_ => true);
+        return Ok(hospitals);
+    }
+    
+    [HttpGet("GetHospitals")]
+    public async Task<IActionResult> Hospitals()
+    {
+        var hospitals = _hospitalCollection.Find(_ => true);
+        return Ok(hospitals);
+    }
+}
+```
+
+
+
+
+
+- Additionally, MongoGogo provides abstract access to any `Collection`, `Database`, and `context`!
+
+```c#
+public class MyController : ControllerBase
+{
+    private readonly IGoContext<MyMongoDBContext> _myContext;
+    private readonly IGoDatabase<MyMongoDBContext.City> _cityDatabase;
+    private readonly IGoCollection<Hospital> _hospitalCollection;
+
+    public MyController(IGoContext<MyMongoDBContext> myContext,
+                        IGoDatabase<MyMongoDBContext.City> cityDatabase,
+                        IGoCollection<Hospital> hospitalCollection)
+    {
+        this._myContext = myContext;
+        this._cityDatabase = cityDatabase;
         this._hospitalCollection = hospitalCollection;
-      }
-      
-      [HttpGet("GetHospitalsAsync")]
-      public async Task<IActionResult> Hospitals()
-      {
-          var hospitals = await _hospitalCollection.FindAsync(_ => true);
-          return Ok(hospitals);
-      }
-      
-      [HttpGet("GetHospitals")]
-      public async Task<IActionResult> Hospitals()
-      {
-          var hospitals = _hospitalCollection.Find(_ => true);
-          return Ok(hospitals);
-      }
-  }
-  ```
-  
-  
-  
-  
-  
-  - Additionally, MongoGogo provides abstract access to any `Collection`, `Database`, and `context`!
-  
-  ```c#
-  public class MyController : ControllerBase
-  {
-      private readonly IGoContext<MyMongoDBContext> _myContext;
-      private readonly IGoDatabase<MyMongoDBContext.City> _cityDatabase;
-      private readonly IGoCollection<Hospital> _hospitalCollection;
-  
-      public MyController(IGoContext<MyMongoDBContext> myContext,
-                          IGoDatabase<MyMongoDBContext.City> cityDatabase,
-                          IGoCollection<Hospital> hospitalCollection)
-      {
-          this._myContext = myContext;
-          this._cityDatabase = cityDatabase;
-          this._hospitalCollection = hospitalCollection;
-      }
-  }
-  ```
+    }
+}
+```
 
 ------
 
@@ -116,9 +126,11 @@ public class MyController : ControllerBase
 }
 ```
 
-------
 
-#### **Configuration**
+
+
+
+#### 3. **Configuration**
 
 In the `ConfigureSerivces` segment of `.net core`, pass an `IGoContext` instance into your `IServiceCollection`.
 
@@ -155,7 +167,11 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-#### **Core Components: [Context], [Database], and [Collections]**
+
+
+
+
+#### 4. **Core Components: [Context], [Database], and [Collections]**
 
 ##### **[Context] And [Database]**
 
@@ -333,7 +349,9 @@ public class MyClass
 
 
 
-#### **[IGoCollection\<TDocument>] Methods**
+
+
+#### 5. **[IGoCollection\<TDocument>] Methods**
 
 This section showcases the basic methods of `IGoCollection<TDocument>`.
 
@@ -511,7 +529,7 @@ await _cityCollection.DeleteManyAsync(city => city.Name == "New York");
 
 
 
-#### IGoCollectionObserver\<TDocument>
+#### 6. IGoCollectionObserver\<TDocument>
 
 > `IGoCollectionObserver<TDocument>` implements the observer pattern for a collection of `TDocument`. It notifies subscribers when database operations such as `Insert`, `Update`, `Replace`, or `Delete` are performed on the collection.
 
@@ -538,11 +556,11 @@ Do anything you want in `UpdateEvent` method.
 
 
 
-#### Bulk Operations (IGoBulker\<TDocument>)
+
+
+#### 7. Bulk Operations (IGoBulker\<TDocument>)
 
 > Starts from 4.0.0, bulk write is supported.
-
-
 
 ```c#
 public class MyController : ControllerBase
@@ -576,3 +594,4 @@ public class MyController : ControllerBase
 
 
 **By using the `goBulker` object, you can group multiple database operations together and execute them in a single batch, similar to the logic used in EF Core. This can help improve performance and reduce round-trips to the database.**
+
