@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using MongoGogo.Connection.Builders.Finds;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,14 +42,14 @@ namespace MongoGogo.Connection
 
         public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
                                                    Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,    
-                                                   GoFindOption goFindOption = default)
+                                                   GoFindOption<TDocument> goFindOption = default)
         {
-            goFindOption ??= new GoFindOption();
+            goFindOption ??= new GoFindOption<TDocument>();
             var builder = new GoProjectionBuilder<TDocument>();
 
             var findFluent = MongoCollection.Find(filter, new FindOptions
             {
-                AllowDiskUse = goFindOption.AllowDiskUse,
+                AllowDiskUse = goFindOption.AllowDiskUse
             });
 
             if (projection != null)
@@ -56,13 +57,53 @@ namespace MongoGogo.Connection
                 findFluent = findFluent.Project<TDocument>(projection?.Compile().Invoke(builder).MongoProjectionDefinition);
             }
 
+            if(goFindOption.Sort != default)
+            {
+                findFluent = SortedFluent(findFluent, goFindOption.Sort);
+            }
+
             return findFluent.Limit(goFindOption.Limit)
                                   .Skip(goFindOption.Skip)
                                   .ToEnumerable();
         }
 
+        private IFindFluent<TDocument, TDocument> SortedFluent(IFindFluent<TDocument, TDocument> findFluent,
+                                                               Expression<Func<GoSortBuilder<TDocument>, GoSortDefinition<TDocument>>> sort)
+        {
+            var goSortBuilder = new GoSortBuilder<TDocument>();
+            var goSortDefinition = sort.Compile().Invoke(goSortBuilder);
+
+            //deal primary
+            IOrderedFindFluent<TDocument, TDocument> orderedFluent;
+            var primarySortRule = goSortDefinition._primarySortRule;
+            if (primarySortRule.OrderType == OrderType.Ascending)
+            {
+                orderedFluent = findFluent.SortBy(primarySortRule.KeySelector);
+            }
+            else if (primarySortRule.OrderType == OrderType.Descending)
+            {
+                orderedFluent = findFluent.SortByDescending(primarySortRule.KeySelector);
+            }
+            else throw new NotImplementedException();
+
+            //deal secondary
+            foreach (var secondarySortRule in goSortDefinition._secondarySortRules)
+            {
+                if(secondarySortRule.OrderType == OrderType.Ascending)
+                {
+                    orderedFluent = orderedFluent.ThenBy(secondarySortRule.KeySelector);
+                }
+                else if(secondarySortRule.OrderType == OrderType.Descending)
+                {
+                    orderedFluent = orderedFluent.ThenByDescending(secondarySortRule.KeySelector);
+                }
+            }
+
+            return orderedFluent;
+        }
+
         public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
-                                                   GoFindOption goFindOption = default,
+                                                   GoFindOption<TDocument> goFindOption = default,
                                                    Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default)
         {
             return Find(filter, projection, goFindOption);
@@ -75,15 +116,16 @@ namespace MongoGogo.Connection
 
         public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
                                                                     Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
-                                                                    GoFindOption goFindOption = default)
+                                                                    GoFindOption<TDocument> goFindOption = default)
         {
-            goFindOption ??= new GoFindOption();
+            goFindOption ??= new GoFindOption<TDocument>();
             var builder = new GoProjectionBuilder<TDocument>();
             var findOptions = new FindOptions<TDocument, TDocument>
             {
                 AllowDiskUse = goFindOption.AllowDiskUse,
                 Limit = goFindOption.Limit,
-                Skip = goFindOption.Skip
+                Skip = goFindOption.Skip,
+                Sort = ToSort(goFindOption)
             };
 
             if (projection != null)
@@ -94,8 +136,44 @@ namespace MongoGogo.Connection
             return await (await MongoCollection.FindAsync(filter, findOptions)).ToListAsync();
         }
 
+        private SortDefinition<TDocument> ToSort(GoFindOption<TDocument> goFindOption)
+        {
+            if (goFindOption.Sort == null) return default;
+            var goSortBuilder = new GoSortBuilder<TDocument>();
+            var goSortDefinition = goFindOption.Sort.Compile().Invoke(goSortBuilder);
+
+            //deal primary
+            SortDefinition<TDocument> sortDefinition = default;
+            var primarySortRule = goSortDefinition._primarySortRule;
+            if(primarySortRule.OrderType == OrderType.Ascending)
+            {
+                sortDefinition = Builders<TDocument>.Sort.Ascending(primarySortRule.KeySelector);
+            }
+            else if( primarySortRule.OrderType == OrderType.Descending)
+            {
+                sortDefinition = Builders<TDocument>.Sort.Descending(primarySortRule.KeySelector);
+            }
+            else throw new NotImplementedException();
+
+            //deal secondary
+            foreach (var secondarySortRule in goSortDefinition._secondarySortRules)
+            {
+                if (secondarySortRule.OrderType == OrderType.Ascending)
+                {
+                    sortDefinition = sortDefinition.Ascending(secondarySortRule.KeySelector);
+                }
+                else if (secondarySortRule.OrderType == OrderType.Descending)
+                {
+                    sortDefinition = sortDefinition.Descending(secondarySortRule.KeySelector);
+                }
+                else throw new NotImplementedException();
+            }
+
+            return sortDefinition;
+        }
+
         public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
-                                                      GoFindOption goFindOption = null,
+                                                      GoFindOption<TDocument> goFindOption = null,
                                                       Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
         {
             return FindAsync(filter, projection, goFindOption);
@@ -109,25 +187,16 @@ namespace MongoGogo.Connection
 
         public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter,
                                          Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
-                                         GoFindOption goFindOption = null)
+                                         GoFindOption<TDocument> goFindOption = null)
         {
-            if(goFindOption == null)
-            {
-                goFindOption = new GoFindOption
-                {
-                    Limit = 1
-                };
-            }
-            else
-            {
-                goFindOption.Limit = 1;
-            }
+            goFindOption ??= new GoFindOption<TDocument>();
+            goFindOption.Limit = 1;
 
             return Find(filter, projection, goFindOption).FirstOrDefault();
         }
 
         public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
-                                 GoFindOption goFindOption = null,
+                                 GoFindOption<TDocument> goFindOption = null,
                                  Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
         {
             return FindOne(filter, projection, goFindOption);
@@ -140,11 +209,11 @@ namespace MongoGogo.Connection
 
         public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
                                                           Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
-                                                          GoFindOption goFindOption = null)
+                                                          GoFindOption<TDocument> goFindOption = null)
         {
             if(goFindOption == null)
             {
-                goFindOption = new GoFindOption
+                goFindOption = new GoFindOption<TDocument>
                 {
                     Limit = 1
                 };
@@ -158,7 +227,7 @@ namespace MongoGogo.Connection
         }
 
         public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
-                                            GoFindOption goFindOption = null,
+                                            GoFindOption<TDocument> goFindOption = null,
                                             Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
         {
             return FindOneAsync(filter, projection, goFindOption);

@@ -36,7 +36,7 @@ namespace MongoGogo.Connection
         /// <returns>The returned documents.</returns>
         public IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
                                            Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
-                                           GoFindOption goFindOption = default);
+                                           GoFindOption<TDocument> goFindOption = default);
 
         /// <summary>
         /// Finds the documents matching the filter.
@@ -49,7 +49,7 @@ namespace MongoGogo.Connection
         /// This overload is provided for scenarios where only the 'goFindOption' parameter needs to be specified, allowing for a more concise call syntax.
         /// </remarks>
         public IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
-                                           GoFindOption goFindOption = default,
+                                           GoFindOption<TDocument> goFindOption = default,
                                            Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default);
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace MongoGogo.Connection
         /// <returns>A task that represents the asynchronous operation. The task result contains the collection of documents that match the filter.</returns>
         public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
                                                       Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
-                                                      GoFindOption goFindOption = default);
+                                                      GoFindOption<TDocument> goFindOption = default);
 
         /// <summary>
         /// Asynchronously finds the documents matching the filter.
@@ -81,7 +81,7 @@ namespace MongoGogo.Connection
         /// This overload is provided for scenarios where only the 'goFindOption' parameter needs to be specified, allowing for a more concise call syntax.
         /// </remarks>
         public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
-                                                      GoFindOption goFindOption = default,
+                                                      GoFindOption<TDocument> goFindOption = default,
                                                       Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default);
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace MongoGogo.Connection
         /// <returns>The returned document.</returns>
         public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
                                  Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
-                                 GoFindOption goFindOption = default);
+                                 GoFindOption<TDocument> goFindOption = default);
 
         /// <summary>
         /// Finds one document matching the filter.
@@ -113,7 +113,7 @@ namespace MongoGogo.Connection
         /// This overload is provided for scenarios where only the 'goFindOption' parameter needs to be specified, allowing for a more concise call syntax.
         /// </remarks>
         public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
-                                 GoFindOption goFindOption = default,
+                                 GoFindOption<TDocument> goFindOption = default,
                                  Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default);
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace MongoGogo.Connection
         /// <returns>The returned document.</returns>
         public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
                                             Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
-                                            GoFindOption goFindOption = default);
+                                            GoFindOption<TDocument> goFindOption = default);
 
         /// <summary>
         /// Asynchronously finds one document matching the filter.
@@ -145,7 +145,7 @@ namespace MongoGogo.Connection
         /// This overload is provided for scenarios where only the 'goFindOption' parameter needs to be specified, allowing for a more concise call syntax.
         /// </remarks>
         public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
-                                            GoFindOption goFindOption = default,
+                                            GoFindOption<TDocument> goFindOption = default,
                                             Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default);
 
         /// <summary>
