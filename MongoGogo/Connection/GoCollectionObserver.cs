@@ -1,8 +1,10 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using MongoGogo.Connection.ObserverItems;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MongoGogo.Connection
@@ -25,6 +27,9 @@ namespace MongoGogo.Connection
         private readonly List<Action<TDocument>> ReplaceActions = new List<Action<TDocument>>();
 
         private readonly List<Action<ObjectId>> DeleteActions = new List<Action<ObjectId>>();
+
+        private readonly Dictionary<Type, List<Action<object>>> DeleteGenericDictionary = new Dictionary<Type, List<Action<object>>>();
+        private readonly Dictionary<Type, Type> GoGenericDocumentDictionary = new Dictionary<Type, Type>(); //dictionary for GoGenericDocument<type>, use this to avoid reflection waste.
 
         private readonly List<Action> AnyEventActions = new List<Action>();
 
@@ -54,6 +59,18 @@ namespace MongoGogo.Connection
         public void OnDelete(Action<ObjectId> action)
         {
             DeleteActions.Add(action);
+            TryStartObserveIfNotSubscribed();
+        }
+
+        public void OnDelete<TBsonIdType>(Action<TBsonIdType> action)
+        {
+            var bsonIdType = typeof(TBsonIdType);
+            if (!DeleteGenericDictionary.TryGetValue(bsonIdType, out var _)) DeleteGenericDictionary[bsonIdType] = new List<Action<object>>();
+
+            // Convert the action to an Action<object>
+            Action<object> objectAction = obj => action((TBsonIdType)obj);
+
+            DeleteGenericDictionary[bsonIdType].Add(objectAction);
             TryStartObserveIfNotSubscribed();
         }
 
@@ -124,10 +141,45 @@ namespace MongoGogo.Connection
                 //delete
                 if (change.OperationType == ChangeStreamOperationType.Delete)
                 {
-                    ObjectId _id = BsonSerializer.Deserialize<GoDocument>(change.DocumentKey)._id;
-                    foreach (var action in DeleteActions)
+                    if (DeleteActions.Any())
                     {
-                        action.Invoke(_id);
+                        try
+                        {
+                            ObjectId _id = BsonSerializer.Deserialize<GoDocument>(change.DocumentKey)._id;
+                            foreach (var action in DeleteActions)
+                            {
+                                action.Invoke(_id);
+                            }
+                        }
+                        catch{}
+                    }
+
+                    // Loop through the DeleteGenericDictionary because the type of change.DocumentKey is not guaranteed.
+                    // We rely on the types provided by the user (which are stored as keys in DeleteGenericDictionary) to deserialize it.
+                    // If deserialization for a particular type fails, the exception is silently ignored and the next type is tried.
+                    // This ensures that we can handle the delete action for the correct type.
+                    // Once a successful deserialization occurs, the corresponding actions are invoked and the loop is exited.
+                    if (DeleteGenericDictionary.Any())
+                    {
+                        foreach (var type_ActionList in DeleteGenericDictionary)
+                        {
+                            var type = type_ActionList.Key;
+                            var actionList = type_ActionList.Value;
+
+                            try
+                            {
+                                var genericDocumentType = MakeGenericType(type);
+                                var _id = ((dynamic)BsonSerializer.Deserialize(change.DocumentKey, genericDocumentType))._id;
+                                foreach (var action in actionList)
+                                {
+                                    action.Invoke(_id);
+                                }
+                                break;
+                            } catch(Exception ex)
+                            {
+                                
+                            }
+                        }
                     }
                 }
 
@@ -137,6 +189,21 @@ namespace MongoGogo.Connection
                     anyEvent.Invoke();
                 }
             });
+        }
+
+        /// <summary>
+        /// Uses cache to get genericType as possible to avoid using reflection.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private Type MakeGenericType(Type type)
+        {
+            if (!GoGenericDocumentDictionary.TryGetValue(type, out var genericDocument))
+            {
+                genericDocument = typeof(GoGenericDocument<>).MakeGenericType(type);
+                GoGenericDocumentDictionary.Add(type, genericDocument);
+            }
+            return genericDocument;
         }
     }
 }
