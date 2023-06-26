@@ -61,6 +61,13 @@ namespace MongoGogo.Connection
                                   .ToEnumerable();
         }
 
+        public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
+                                                   GoFindOption goFindOption = default,
+                                                   Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default)
+        {
+            return Find(filter, projection, goFindOption);
+        }
+
         public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter)
         {
             return await (await MongoCollection.FindAsync(filter)).ToListAsync();
@@ -85,6 +92,13 @@ namespace MongoGogo.Connection
             }
 
             return await (await MongoCollection.FindAsync(filter, findOptions)).ToListAsync();
+        }
+
+        public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
+                                                      GoFindOption goFindOption = null,
+                                                      Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
+        {
+            return FindAsync(filter, projection, goFindOption);
         }
 
         public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter)
@@ -112,14 +126,21 @@ namespace MongoGogo.Connection
             return Find(filter, projection, goFindOption).FirstOrDefault();
         }
 
+        public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
+                                 GoFindOption goFindOption = null,
+                                 Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
+        {
+            return FindOne(filter, projection, goFindOption);
+        }
+
         public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter)
         {
             return (await MongoCollection.FindAsync(filter)).FirstOrDefault();
         }
 
         public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
-                                                  Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
-                                                  GoFindOption goFindOption = null)
+                                                          Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                                          GoFindOption goFindOption = null)
         {
             if(goFindOption == null)
             {
@@ -134,6 +155,13 @@ namespace MongoGogo.Connection
             }
 
             return (await FindAsync(filter, projection, goFindOption)).FirstOrDefault();
+        }
+
+        public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
+                                            GoFindOption goFindOption = null,
+                                            Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
+        {
+            return FindOneAsync(filter, projection, goFindOption);
         }
 
         public virtual void InsertMany(IEnumerable<TDocument> documents)
@@ -165,7 +193,9 @@ namespace MongoGogo.Connection
             return new GoReplaceResult(replaceResult);
         }
 
-        public virtual async Task<GoReplaceResult> ReplaceOneAsync(Expression<Func<TDocument, bool>> filter, TDocument document, bool isUpsert = false)
+        public virtual async Task<GoReplaceResult> ReplaceOneAsync(Expression<Func<TDocument, bool>> filter,
+                                                                   TDocument document,
+                                                                   bool isUpsert = false)
         {
             var replaceResult = await MongoCollection.ReplaceOneAsync(filter, document, new ReplaceOptions
             {
