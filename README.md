@@ -377,18 +377,18 @@ var foundDocuments = _cityCollection.Find(city => city.Population >= 1000);
 var foundDocumentAsync = await _cityCollection.FindAsync(city => city.Population >= 1000);
 ```
 
-- with `goFindOption` (optional)
+- with `goFindOption<TDocument>` (optional)
 
 ```c#
 var foundDocuments = _cityCollection.Find(city => city.Population >= 1000,
-                                          goFindOption: new GoFindOption
+                                          goFindOption: new GoFindOption<City>
                                          {
                                              AllowDiskUse = true,
                                              Limit = 2,
                                              Skip = 1
                                          });
 var foundDocumentAsync = await _cityCollection.FindAsync(city => city.Population >= 1000, 
-                                                         goFindOption: new GoFindOption
+                                                         goFindOption: new GoFindOption<City>
                                                          {
                                                              AllowDiskUse = true,
                                                              Limit = 2,
@@ -535,7 +535,7 @@ await _cityCollection.DeleteManyAsync(city => city.Name == "New York");
 
 
 
-Here is an example code for a notification center class that receives notifications when hospital data is updated:
+- Here is an example code for a notification center class that receives notifications when hospital data is updated:
 
 ```c#
 public class NotificationCenter
@@ -553,6 +553,44 @@ public class NotificationCenter
 ```
 
 Do anything you want in `UpdateEvent` method.
+
+
+
+- Unlike the other operations, the `Delete` operation returns the `_id` field. For general usage, you can use `OnDelete` method to get an `ObjectId` which was deleted from your collection
+
+```c#
+public class NotificationCenter
+{
+	public NotificationCenter(IGoCollectionObserver<Hospital> hospitalObserver)
+	{
+		hospitalObserver.OnDelete(DeleteEvent);
+	}
+	
+	private void DeleteEvent(ObjectId _id) 
+	{
+		//do something with hospital
+	}
+}
+```
+
+
+
+- However, there are sometimes we have other type as our `_id` field. In this scenario, choose `OnDelete<TBsonIdType>` method to get your `_id` back.
+
+```
+public class NotificationCenter
+{
+	public NotificationCenter(IGoCollectionObserver<Hospital> hospitalObserver)
+	{
+		hospitalObserver.OnDelete<int>(DeleteEvent);
+	}
+	
+	private void DeleteEvent(int _id) 
+	{
+		//do something with hospital
+	}
+}
+```
 
 
 
