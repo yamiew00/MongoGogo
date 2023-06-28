@@ -43,14 +43,9 @@ namespace MongoGogo.Connection
         /// </summary>
         /// <param name="filter">The filter</param>
         /// <param name="goFindOption">The option</param>
-        /// <param name="projection">The projection</param>
         /// <returns>The returned documents.</returns>
-        /// <remarks>
-        /// This overload is provided for scenarios where only the 'goFindOption' parameter needs to be specified, allowing for a more concise call syntax.
-        /// </remarks>
         public IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
-                                           GoFindOption<TDocument> goFindOption = default,
-                                           Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default);
+                                           GoFindOption<TDocument> goFindOption = default);
 
         /// <summary>
         /// Asynchronously finds the documents matching the filter.
@@ -75,14 +70,9 @@ namespace MongoGogo.Connection
         /// </summary>
         /// <param name="filter">The filter</param>
         /// <param name="goFindOption">The option</param>
-        /// <param name="projection">The projection</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the collection of documents that match the filter.</returns>
-        /// <remarks>
-        /// This overload is provided for scenarios where only the 'goFindOption' parameter needs to be specified, allowing for a more concise call syntax.
-        /// </remarks>
         public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
-                                                      GoFindOption<TDocument> goFindOption = default,
-                                                      Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default);
+                                                      GoFindOption<TDocument> goFindOption = default);
 
         /// <summary>
         /// Finds one document matching the filter.
@@ -107,14 +97,9 @@ namespace MongoGogo.Connection
         /// </summary>
         /// <param name="filter">The filter</param>
         /// <param name="goFindOption">The option</param>
-        /// <param name="projection">The projection</param>
         /// <returns>The returned document.</returns>
-        /// <remarks>
-        /// This overload is provided for scenarios where only the 'goFindOption' parameter needs to be specified, allowing for a more concise call syntax.
-        /// </remarks>
         public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
-                                 GoFindOption<TDocument> goFindOption = default,
-                                 Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default);
+                                 GoFindOption<TDocument> goFindOption = default);
 
         /// <summary>
         /// Asynchronously finds one document matching the filter.
@@ -139,14 +124,9 @@ namespace MongoGogo.Connection
         /// </summary>
         /// <param name="filter">The filter</param>
         /// <param name="goFindOption">The option</param>
-        /// <param name="projection">The projection</param>
         /// <returns>The returned document.</returns>
-        /// <remarks>
-        /// This overload is provided for scenarios where only the 'goFindOption' parameter needs to be specified, allowing for a more concise call syntax.
-        /// </remarks>
         public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
-                                            GoFindOption<TDocument> goFindOption = default,
-                                            Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default);
+                                            GoFindOption<TDocument> goFindOption = default);
 
         /// <summary>
         /// Inserts a single document into the collection.

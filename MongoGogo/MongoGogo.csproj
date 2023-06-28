@@ -11,7 +11,7 @@
 - Auto dependency injection for Microsoft.Extensions.DependencyInjection.
 - Provides attributes used for manage databases and collections for each connection.</Description>
     <PackageTags>mongodb,mongo,nosql,repository</PackageTags>
-    <Version>5.0.0</Version>
+    <Version>5.0.1</Version>
     <PackageProjectUrl>https://github.com/yamiew00/MongoGogo</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yamiew00/MongoGogo</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>

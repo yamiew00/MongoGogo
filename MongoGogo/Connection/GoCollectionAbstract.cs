@@ -103,10 +103,9 @@ namespace MongoGogo.Connection
         }
 
         public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
-                                                   GoFindOption<TDocument> goFindOption = default,
-                                                   Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default)
+                                                   GoFindOption<TDocument> goFindOption = default)
         {
-            return Find(filter, projection, goFindOption);
+            return Find(filter, default, goFindOption);
         }
 
         public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter)
@@ -173,10 +172,9 @@ namespace MongoGogo.Connection
         }
 
         public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
-                                                      GoFindOption<TDocument> goFindOption = null,
-                                                      Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
+                                                      GoFindOption<TDocument> goFindOption = null)
         {
-            return FindAsync(filter, projection, goFindOption);
+            return FindAsync(filter, default, goFindOption);
         }
 
         public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter)
@@ -196,10 +194,9 @@ namespace MongoGogo.Connection
         }
 
         public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
-                                 GoFindOption<TDocument> goFindOption = null,
-                                 Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
+                                 GoFindOption<TDocument> goFindOption = null)
         {
-            return FindOne(filter, projection, goFindOption);
+            return FindOne(filter, default, goFindOption);
         }
 
         public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter)
@@ -227,10 +224,9 @@ namespace MongoGogo.Connection
         }
 
         public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
-                                            GoFindOption<TDocument> goFindOption = null,
-                                            Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null)
+                                            GoFindOption<TDocument> goFindOption = null)
         {
-            return FindOneAsync(filter, projection, goFindOption);
+            return FindOneAsync(filter, default, goFindOption);
         }
 
         public virtual void InsertMany(IEnumerable<TDocument> documents)
