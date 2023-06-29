@@ -9,9 +9,11 @@ namespace MongoGogo.Connection
     /// 
     /// </summary>
     /// <typeparam name="TContext">The type of the mongodb context.</typeparam>
-    public interface IGoTransaction<TContext>
+    public interface IGoTransaction<TContext> : IDisposable
     {
+        public void Commit();
 
+        public Task CommitAsync();
 
         #region CRUD
         public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter);
@@ -93,6 +95,8 @@ namespace MongoGogo.Connection
         public Task<GoDeleteResult> DeleteManyAsync<TDocument>(Expression<Func<TDocument, bool>> filter);
 
         #endregion
+
+        public IGoBulker<TDocument> NewBulker<TDocument>();
     }
 
 }

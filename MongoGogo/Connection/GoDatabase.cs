@@ -11,7 +11,7 @@ namespace MongoGogo.Connection
     /// </summary>
     /// <typeparam name="TContext">The type of the mongodb context.</typeparam>
     /// <typeparam name="TDatabase">database type.</typeparam>
-    public class GoDatabase<TContext, TDatabase> : IGoDatabase<TDatabase>
+    internal class GoDatabase<TContext, TDatabase> : IGoDatabase<TDatabase>
     {
         private readonly IMongoDatabase _MongoDatabase; 
 

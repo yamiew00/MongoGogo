@@ -14,7 +14,7 @@ namespace MongoGogo.Connection
     /// It will notify subscribers when the collection undergoes insertions, deletions, updates, or replacements
     /// </summary>
     /// <typeparam name="TDocument"> mongo document</typeparam>
-    public class GoCollectionObserver<TDocument> : IGoCollectionObserver<TDocument>
+    internal class GoCollectionObserver<TDocument> : IGoCollectionObserver<TDocument>
     {
         private readonly IMongoCollection<TDocument> MongoCollection;
 

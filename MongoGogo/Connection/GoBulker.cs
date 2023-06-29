@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MongoGogo.Connection
 {
-    public class GoBulker<TDocument> : IGoBulker<TDocument>
+    internal class GoBulker<TDocument> : IGoBulker<TDocument>
     {
         private List<WriteModel<TDocument>> _writeModels;
 

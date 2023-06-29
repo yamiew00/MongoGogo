@@ -27,48 +27,219 @@ namespace MongoGogo.Connection
 
         public virtual long Count(Expression<Func<TDocument, bool>> filter)
         {
-            return MongoCollection.CountDocuments(filter);
+            return PrimaryMethodCaller().Count(default, filter);
         }
 
-        public virtual async Task<long> CountAsync(Expression<Func<TDocument, bool>> filter)
+        public virtual Task<long> CountAsync(Expression<Func<TDocument, bool>> filter)
         {
-            return await MongoCollection.CountDocumentsAsync(filter);
+            return PrimaryMethodCaller().CountAsync(default, filter);
         }
 
         public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter)
         {
-            return MongoCollection.Find(filter).ToEnumerable();
+            return PrimaryMethodCaller().Find(default, filter, default, default);
         }
 
         public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
-                                                   Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,    
+                                                   Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
                                                    GoFindOption<TDocument> goFindOption = default)
+        {
+            return PrimaryMethodCaller().Find(default, filter, projection, goFindOption);
+        }
+
+        public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
+                                                   GoFindOption<TDocument> goFindOption = default)
+        {
+            return PrimaryMethodCaller().Find(default, filter, default, goFindOption);
+        }
+
+        public virtual Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter)
+        {
+            return PrimaryMethodCaller().FindAsync(default, filter, default, default);
+        }
+
+        public virtual Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
+                                                              Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                                              GoFindOption<TDocument> goFindOption = default)
+        {
+            return PrimaryMethodCaller().FindAsync(default, filter, projection, goFindOption);
+        }
+
+        public virtual Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
+                                                              GoFindOption<TDocument> goFindOption = null)
+        {
+            return PrimaryMethodCaller().FindAsync(default, filter, default, goFindOption);
+        }
+
+        public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter)
+        {
+            return PrimaryMethodCaller().FindOne(default, filter, default, default);
+        }
+
+        public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter,
+                                         Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                         GoFindOption<TDocument> goFindOption = null)
+        {
+            return PrimaryMethodCaller().FindOne(default, filter, projection, goFindOption);
+        }
+
+        public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
+                                 GoFindOption<TDocument> goFindOption = null)
+        {
+            return PrimaryMethodCaller().FindOne(default, filter, default, goFindOption);
+        }
+
+        public virtual Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter)
+        {
+            return PrimaryMethodCaller().FindOneAsync(default, filter, default, default);
+        }
+
+        public virtual Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
+                                                    Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                                    GoFindOption<TDocument> goFindOption = null)
+        {
+            return PrimaryMethodCaller().FindOneAsync(default, filter, projection, goFindOption);
+        }
+
+        public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
+                                            GoFindOption<TDocument> goFindOption = null)
+        {
+            return PrimaryMethodCaller().FindOneAsync(default, filter, default, goFindOption);
+        }
+
+        public virtual void InsertMany(IEnumerable<TDocument> documents)
+        {
+            PrimaryMethodCaller().InsertMany(default, documents);
+        }
+
+        public virtual Task InsertManyAsync(IEnumerable<TDocument> documents)
+        {
+            return PrimaryMethodCaller().InsertManyAsync(default, documents);
+        }
+
+        public virtual void InsertOne(TDocument document)
+        {
+            PrimaryMethodCaller().InsertOne(default, document);
+        }
+
+        public virtual Task InsertOneAsync(TDocument document)
+        {
+            return PrimaryMethodCaller().InsertOneAsync(default, document);
+        }
+
+        public virtual GoReplaceResult ReplaceOne(Expression<Func<TDocument, bool>> filter,
+                                                  TDocument document,
+                                                  bool isUpsert = false)
+        {
+            return PrimaryMethodCaller().ReplaceOne(default, filter, document, isUpsert);  
+        }
+
+        public virtual Task<GoReplaceResult> ReplaceOneAsync(Expression<Func<TDocument, bool>> filter,
+                                                             TDocument document,
+                                                             bool isUpsert = false)
+        {
+            return PrimaryMethodCaller().ReplaceOneAsync(default, filter, document, isUpsert);
+        }
+
+        public GoUpdateResult UpdateOne(Expression<Func<TDocument, bool>> filter,
+                                        Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                        bool isUpsert = false)
+        {
+            return PrimaryMethodCaller().UpdateOne(default, filter, updateDefinitionBuilder, isUpsert);
+        }
+
+        public  Task<GoUpdateResult> UpdateOneAsync(Expression<Func<TDocument, bool>> filter,
+                                                    Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                    bool isUpsert = false)
+        {
+            return PrimaryMethodCaller().UpdateOneAsync(default, filter, updateDefinitionBuilder, isUpsert);
+        }
+
+        public GoUpdateResult UpdateMany(Expression<Func<TDocument, bool>> filter,
+                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
+        {
+            return PrimaryMethodCaller().UpdateMany(default, filter, updateDefinitionBuilder);
+        }
+
+        public Task<GoUpdateResult> UpdateManyAsync(Expression<Func<TDocument, bool>> filter,
+                                                    Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
+        {
+            return PrimaryMethodCaller().UpdateManyAsync(default, filter, updateDefinitionBuilder);
+        }
+
+        public GoDeleteResult DeleteOne(Expression<Func<TDocument, bool>> filter)
+        {
+            return PrimaryMethodCaller().DeleteOne(default, filter);
+        }
+
+        public Task<GoDeleteResult> DeleteOneAsync(Expression<Func<TDocument, bool>> filter)
+        {
+            return PrimaryMethodCaller().DeleteOneAsync(default, filter);
+        }
+
+        public GoDeleteResult DeleteMany(Expression<Func<TDocument, bool>> filter)
+        {
+            return PrimaryMethodCaller().DeleteMany(default, filter);
+        }
+
+        public Task<GoDeleteResult> DeleteManyAsync(Expression<Func<TDocument, bool>> filter)
+        {
+            return PrimaryMethodCaller().DeleteManyAsync(default, filter);
+        }
+
+        public IGoBulker<TDocument> NewBulker()
+        {
+            return new GoBulker<TDocument>(MongoCollection);
+        }
+
+        #region Primary Methods
+
+        private IGoCollection<TDocument> PrimaryMethodCaller()
+        {
+            return this;
+        }
+
+        IEnumerable<TDocument> IGoCollection<TDocument>.Find(IClientSessionHandle session,
+                                                             Expression<Func<TDocument, bool>> filter,
+                                                             Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
+                                                             GoFindOption<TDocument> goFindOption)
         {
             goFindOption ??= new GoFindOption<TDocument>();
             var builder = new GoProjectionBuilder<TDocument>();
 
-            var findFluent = MongoCollection.Find(filter, new FindOptions
+            IFindFluent<TDocument, TDocument> findFluent = (session == null) switch
             {
-                AllowDiskUse = goFindOption.AllowDiskUse
-            });
+                true => MongoCollection.Find(filter,
+                                             new FindOptions
+                                             {
+                                                 AllowDiskUse = goFindOption.AllowDiskUse
+                                             }),
+                false => MongoCollection.Find(session,
+                                              filter,
+                                              new FindOptions
+                                              {
+                                                  AllowDiskUse = goFindOption.AllowDiskUse
+                                              })
+
+            };
 
             if (projection != null)
             {
                 findFluent = findFluent.Project<TDocument>(projection?.Compile().Invoke(builder).MongoProjectionDefinition);
             }
 
-            if(goFindOption.Sort != default)
+            if (goFindOption.Sort != default)
             {
                 findFluent = SortedFluent(findFluent, goFindOption.Sort);
             }
 
             return findFluent.Limit(goFindOption.Limit)
-                                  .Skip(goFindOption.Skip)
-                                  .ToEnumerable();
+                             .Skip(goFindOption.Skip)
+                             .ToEnumerable();
         }
 
-        private IFindFluent<TDocument, TDocument> SortedFluent(IFindFluent<TDocument, TDocument> findFluent,
-                                                               Expression<Func<GoSortBuilder<TDocument>, GoSortDefinition<TDocument>>> sort)
+        private static IFindFluent<TDocument, TDocument> SortedFluent(IFindFluent<TDocument, TDocument> findFluent,
+                                                                      Expression<Func<GoSortBuilder<TDocument>, GoSortDefinition<TDocument>>> sort)
         {
             var goSortBuilder = new GoSortBuilder<TDocument>();
             var goSortDefinition = sort.Compile().Invoke(goSortBuilder);
@@ -89,11 +260,11 @@ namespace MongoGogo.Connection
             //deal secondary
             foreach (var secondarySortRule in goSortDefinition._secondarySortRules)
             {
-                if(secondarySortRule.OrderType == OrderType.Ascending)
+                if (secondarySortRule.OrderType == OrderType.Ascending)
                 {
                     orderedFluent = orderedFluent.ThenBy(secondarySortRule.KeySelector);
                 }
-                else if(secondarySortRule.OrderType == OrderType.Descending)
+                else if (secondarySortRule.OrderType == OrderType.Descending)
                 {
                     orderedFluent = orderedFluent.ThenByDescending(secondarySortRule.KeySelector);
                 }
@@ -102,21 +273,12 @@ namespace MongoGogo.Connection
             return orderedFluent;
         }
 
-        public virtual IEnumerable<TDocument> Find(Expression<Func<TDocument, bool>> filter,
-                                                   GoFindOption<TDocument> goFindOption = default)
+        async Task<IEnumerable<TDocument>> IGoCollection<TDocument>.FindAsync(IClientSessionHandle session,
+                                                                              Expression<Func<TDocument, bool>> filter,
+                                                                              Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
+                                                                              GoFindOption<TDocument> goFindOption)
         {
-            return Find(filter, default, goFindOption);
-        }
 
-        public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter)
-        {
-            return await (await MongoCollection.FindAsync(filter)).ToListAsync();
-        }
-
-        public virtual async Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
-                                                                    Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
-                                                                    GoFindOption<TDocument> goFindOption = default)
-        {
             goFindOption ??= new GoFindOption<TDocument>();
             var builder = new GoProjectionBuilder<TDocument>();
             var findOptions = new FindOptions<TDocument, TDocument>
@@ -132,10 +294,11 @@ namespace MongoGogo.Connection
                 findOptions.Projection = projection?.Compile().Invoke(builder).MongoProjectionDefinition;
             }
 
-            return await (await MongoCollection.FindAsync(filter, findOptions)).ToListAsync();
+            if(session != null) return await(await MongoCollection.FindAsync(filter, findOptions)).ToListAsync();
+            else return await (await MongoCollection.FindAsync(session, filter, findOptions)).ToListAsync();
         }
 
-        private SortDefinition<TDocument> ToSort(GoFindOption<TDocument> goFindOption)
+        private static SortDefinition<TDocument> ToSort(GoFindOption<TDocument> goFindOption)
         {
             if (goFindOption.Sort == null) return default;
             var goSortBuilder = new GoSortBuilder<TDocument>();
@@ -144,11 +307,11 @@ namespace MongoGogo.Connection
             //deal primary
             SortDefinition<TDocument> sortDefinition = default;
             var primarySortRule = goSortDefinition._primarySortRule;
-            if(primarySortRule.OrderType == OrderType.Ascending)
+            if (primarySortRule.OrderType == OrderType.Ascending)
             {
                 sortDefinition = Builders<TDocument>.Sort.Ascending(primarySortRule.KeySelector);
             }
-            else if( primarySortRule.OrderType == OrderType.Descending)
+            else if (primarySortRule.OrderType == OrderType.Descending)
             {
                 sortDefinition = Builders<TDocument>.Sort.Descending(primarySortRule.KeySelector);
             }
@@ -171,44 +334,23 @@ namespace MongoGogo.Connection
             return sortDefinition;
         }
 
-        public Task<IEnumerable<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filter,
-                                                      GoFindOption<TDocument> goFindOption = null)
-        {
-            return FindAsync(filter, default, goFindOption);
-        }
-
-        public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter)
-        {
-            return MongoCollection.Find(filter).Limit(1).FirstOrDefault();
-        }
-
-
-        public virtual TDocument FindOne(Expression<Func<TDocument, bool>> filter,
-                                         Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
-                                         GoFindOption<TDocument> goFindOption = null)
+        TDocument IGoCollection<TDocument>.FindOne(IClientSessionHandle session,
+                                                   Expression<Func<TDocument, bool>> filter,
+                                                   Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
+                                                   GoFindOption<TDocument> goFindOption)
         {
             goFindOption ??= new GoFindOption<TDocument>();
             goFindOption.Limit = 1;
 
-            return Find(filter, projection, goFindOption).FirstOrDefault();
+            return PrimaryMethodCaller().Find(session, filter, projection, goFindOption).FirstOrDefault();
         }
 
-        public TDocument FindOne(Expression<Func<TDocument, bool>> filter,
-                                 GoFindOption<TDocument> goFindOption = null)
+        async Task<TDocument> IGoCollection<TDocument>.FindOneAsync(IClientSessionHandle session,
+                                                                    Expression<Func<TDocument, bool>> filter,
+                                                                    Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
+                                                                    GoFindOption<TDocument> goFindOption)
         {
-            return FindOne(filter, default, goFindOption);
-        }
-
-        public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter)
-        {
-            return (await MongoCollection.FindAsync(filter)).FirstOrDefault();
-        }
-
-        public virtual async Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
-                                                          Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
-                                                          GoFindOption<TDocument> goFindOption = null)
-        {
-            if(goFindOption == null)
+            if (goFindOption == null)
             {
                 goFindOption = new GoFindOption<TDocument>
                 {
@@ -220,132 +362,267 @@ namespace MongoGogo.Connection
                 goFindOption.Limit = 1;
             }
 
-            return (await FindAsync(filter, projection, goFindOption)).FirstOrDefault();
+            return (await PrimaryMethodCaller().FindAsync(session, filter, projection, goFindOption)).FirstOrDefault();
         }
 
-        public Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filter,
-                                            GoFindOption<TDocument> goFindOption = null)
+        void IGoCollection<TDocument>.InsertOne(IClientSessionHandle session,
+                                                TDocument document)
         {
-            return FindOneAsync(filter, default, goFindOption);
+            if(session == null) MongoCollection.InsertOne(document);
+            else MongoCollection.InsertOne(session, document);
         }
 
-        public virtual void InsertMany(IEnumerable<TDocument> documents)
+        Task IGoCollection<TDocument>.InsertOneAsync(IClientSessionHandle session,
+                                                     TDocument document)
         {
-            MongoCollection.InsertMany(documents);
+            if(session == null) return MongoCollection.InsertOneAsync(document);
+            else return MongoCollection.InsertOneAsync(session, document);
         }
 
-        public virtual Task InsertManyAsync(IEnumerable<TDocument> documents)
+        void IGoCollection<TDocument>.InsertMany(IClientSessionHandle session,
+                                                 IEnumerable<TDocument> documents)
         {
-            return MongoCollection.InsertManyAsync(documents);
+            if (session == null) MongoCollection.InsertMany(documents);
+            else MongoCollection.InsertMany(session, documents);
         }
 
-        public virtual void InsertOne(TDocument document)
+        Task IGoCollection<TDocument>.InsertManyAsync(IClientSessionHandle session,
+                                                      IEnumerable<TDocument> documents)
         {
-            MongoCollection.InsertOne(document);
+            if (session == null) return MongoCollection.InsertManyAsync(documents);
+            else return MongoCollection.InsertManyAsync(session, documents);
         }
 
-        public virtual Task InsertOneAsync(TDocument document)
+        GoReplaceResult IGoCollection<TDocument>.ReplaceOne(IClientSessionHandle session,
+                                                            Expression<Func<TDocument, bool>> filter,
+                                                            TDocument document,
+                                                            bool isUpsert)
         {
-            return MongoCollection.InsertOneAsync(document);
-        }
-
-        public virtual GoReplaceResult ReplaceOne(Expression<Func<TDocument, bool>> filter, TDocument document, bool isUpsert = false)
-        {
-            var replaceResult = MongoCollection.ReplaceOne(filter, document, new ReplaceOptions
+            ReplaceOneResult replaceResult;
+            if (session == null)
             {
-                IsUpsert = isUpsert
-            });
+                replaceResult = MongoCollection.ReplaceOne(filter, document, new ReplaceOptions
+                {
+                    IsUpsert = isUpsert
+                });
+            }
+            else
+            {
+                replaceResult = MongoCollection.ReplaceOne(session, filter, document, new ReplaceOptions
+                {
+                    IsUpsert = isUpsert
+                });
+            }
+
             return new GoReplaceResult(replaceResult);
         }
 
-        public virtual async Task<GoReplaceResult> ReplaceOneAsync(Expression<Func<TDocument, bool>> filter,
-                                                                   TDocument document,
-                                                                   bool isUpsert = false)
+        async Task<GoReplaceResult> IGoCollection<TDocument>.ReplaceOneAsync(IClientSessionHandle session,
+                                                                             Expression<Func<TDocument, bool>> filter,
+                                                                             TDocument document,
+                                                                             bool isUpsert)
         {
-            var replaceResult = await MongoCollection.ReplaceOneAsync(filter, document, new ReplaceOptions
+            ReplaceOneResult replaceResult;
+            if (session == null)
             {
-                IsUpsert = isUpsert
-            });
+                replaceResult = await MongoCollection.ReplaceOneAsync(filter, document, new ReplaceOptions
+                                                                                         {
+                                                                                             IsUpsert = isUpsert
+                                                                                         });
+            }
+            else
+            {
+                replaceResult = await MongoCollection.ReplaceOneAsync(session, filter, document, new ReplaceOptions
+                {
+                    IsUpsert = isUpsert
+                });
+            }
+
             return new GoReplaceResult(replaceResult);
         }
 
-        public GoUpdateResult UpdateOne(Expression<Func<TDocument, bool>> filter,
-                                        Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
-                                        bool isUpsert = false)
+        long IGoCollection<TDocument>.Count(IClientSessionHandle session,
+                                            Expression<Func<TDocument, bool>> filter)
+        {
+            if (session == null) return MongoCollection.CountDocuments(filter);
+            else return MongoCollection.CountDocuments(session, filter);
+        }
+
+        Task<long> IGoCollection<TDocument>.CountAsync(IClientSessionHandle session,
+                                                       Expression<Func<TDocument, bool>> filter)
+        {
+            if (session == null) return MongoCollection.CountDocumentsAsync(filter);
+            else return MongoCollection.CountDocumentsAsync(session, filter);
+        }
+
+        GoUpdateResult IGoCollection<TDocument>.UpdateOne(IClientSessionHandle session,
+                                                          Expression<Func<TDocument, bool>> filter,
+                                                          Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                          bool isUpsert)
         {
             var updateBuilder = new GoUpdateBuilder<TDocument>();
-            var mongoUpdateDefinition = set.Compile()
+            var mongoUpdateDefinition = updateDefinitionBuilder.Compile()
                                            .Invoke(updateBuilder).MongoUpdateDefinition;
-            var mongoUpdateResult = MongoCollection.UpdateOne(filter,
-                                          mongoUpdateDefinition,
-                                          new UpdateOptions
-                                          {
-                                              IsUpsert = isUpsert
-                                          });
+            UpdateResult mongoUpdateResult;
+            
+            if(session == null)
+            {
+                mongoUpdateResult = MongoCollection.UpdateOne(filter,
+                                                              mongoUpdateDefinition,
+                                                              new UpdateOptions
+                                                              {
+                                                                  IsUpsert = isUpsert
+                                                              });
+            }
+            else
+            {
+                mongoUpdateResult = MongoCollection.UpdateOne(session,
+                                                              filter,
+                                                              mongoUpdateDefinition,
+                                                              new UpdateOptions
+                                                              {
+                                                                  IsUpsert = isUpsert
+                                                              });
+            }
+            
             return new GoUpdateResult(mongoUpdateResult);
         }
 
-        public async Task<GoUpdateResult> UpdateOneAsync(Expression<Func<TDocument, bool>> filter,
-                                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
-                                                         bool isUpsert = false)
+        async Task<GoUpdateResult> IGoCollection<TDocument>.UpdateOneAsync(IClientSessionHandle session,
+                                                                           Expression<Func<TDocument, bool>> filter,
+                                                                           Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                                           bool isUpsert)
         {
             var updateBuilder = new GoUpdateBuilder<TDocument>();
-            var mongoUpdateDefinition = set.Compile()
-                                           .Invoke(updateBuilder).MongoUpdateDefinition;
-            var mongoUpdateResult = await MongoCollection.UpdateOneAsync(filter,
+            var mongoUpdateDefinition = updateDefinitionBuilder.Compile()
+                                                               .Invoke(updateBuilder).MongoUpdateDefinition;
+            UpdateResult mongoUpdateResult;
+            if(session == null)
+            {
+                mongoUpdateResult = await MongoCollection.UpdateOneAsync(filter,
                                                                          mongoUpdateDefinition,
                                                                          new UpdateOptions
                                                                          {
                                                                              IsUpsert = isUpsert
                                                                          });
+            }
+            else
+            {
+                mongoUpdateResult = await MongoCollection.UpdateOneAsync(session,
+                                                                         filter,
+                                                                         mongoUpdateDefinition,
+                                                                         new UpdateOptions
+                                                                         {
+                                                                             IsUpsert = isUpsert
+                                                                         });
+            }
             return new GoUpdateResult(mongoUpdateResult);
         }
 
-        public GoUpdateResult UpdateMany(Expression<Func<TDocument, bool>> filter,
-                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set)
+        GoUpdateResult IGoCollection<TDocument>.UpdateMany(IClientSessionHandle session,
+                                                           Expression<Func<TDocument, bool>> filter,
+                                                           Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
         {
             var updateBuilder = new GoUpdateBuilder<TDocument>();
-            var mongoUpdateDefinition = set.Compile()
-                                           .Invoke(updateBuilder).MongoUpdateDefinition;
-            var mongoUpdateResult = MongoCollection.UpdateMany(filter,
+            var mongoUpdateDefinition = updateDefinitionBuilder.Compile()
+                                                               .Invoke(updateBuilder).MongoUpdateDefinition;
+            UpdateResult mongoUpdateResult;
+            if(session == null)
+            {
+                mongoUpdateResult = MongoCollection.UpdateMany(filter,
                                                                mongoUpdateDefinition);
+            }
+            else
+            {
+                mongoUpdateResult = MongoCollection.UpdateMany(session,
+                                                               filter,
+                                                               mongoUpdateDefinition);
+            }
             return new GoUpdateResult(mongoUpdateResult);
         }
 
-        public async Task<GoUpdateResult> UpdateManyAsync(Expression<Func<TDocument, bool>> filter,
-                                                          Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set)
+        async Task<GoUpdateResult> IGoCollection<TDocument>.UpdateManyAsync(IClientSessionHandle session,
+                                                                            Expression<Func<TDocument, bool>> filter,
+                                                                            Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
         {
             var updateBuilder = new GoUpdateBuilder<TDocument>();
-            var mongoUpdateDefinition = set.Compile()
-                                           .Invoke(updateBuilder).MongoUpdateDefinition;
-            var mongoUpdateResult = await MongoCollection.UpdateManyAsync(filter,
+            var mongoUpdateDefinition = updateDefinitionBuilder.Compile()
+                                                               .Invoke(updateBuilder).MongoUpdateDefinition;
+            UpdateResult mongoUpdateResult;
+            if(session == null)
+            {
+                mongoUpdateResult = await MongoCollection.UpdateManyAsync(filter,
                                                                           mongoUpdateDefinition);
+            }
+            else
+            {
+                mongoUpdateResult = await MongoCollection.UpdateManyAsync(session,
+                                                                          filter,
+                                                                          mongoUpdateDefinition);
+            }
             return new GoUpdateResult(mongoUpdateResult);
         }
 
-        public GoDeleteResult DeleteOne(Expression<Func<TDocument, bool>> filter)
+        GoDeleteResult IGoCollection<TDocument>.DeleteOne(IClientSessionHandle session,
+                                                          Expression<Func<TDocument, bool>> filter)
         {
-            return new GoDeleteResult(MongoCollection.DeleteOne(filter));
+            DeleteResult deleteResult;
+            if(session == null)
+            {
+                deleteResult = MongoCollection.DeleteOne(filter);
+            }
+            else
+            {
+                deleteResult = MongoCollection.DeleteOne(session, filter);
+            }
+            return new GoDeleteResult(deleteResult);
         }
 
-        public async Task<GoDeleteResult> DeleteOneAsync(Expression<Func<TDocument, bool>> filter)
+        async Task<GoDeleteResult> IGoCollection<TDocument>.DeleteOneAsync(IClientSessionHandle session,
+                                                                           Expression<Func<TDocument, bool>> filter)
         {
-            return new GoDeleteResult( await MongoCollection.DeleteOneAsync(filter));
+            DeleteResult deleteResult;
+            if (session == null)
+            {
+                deleteResult = await MongoCollection.DeleteOneAsync(filter);
+            }
+            else
+            {
+                deleteResult = await MongoCollection.DeleteOneAsync(session, filter);
+            }
+            return new GoDeleteResult(deleteResult);
         }
 
-        public GoDeleteResult DeleteMany(Expression<Func<TDocument, bool>> filter)
+        GoDeleteResult IGoCollection<TDocument>.DeleteMany(IClientSessionHandle session,
+                                                           Expression<Func<TDocument, bool>> filter)
         {
-            return new GoDeleteResult(MongoCollection.DeleteMany(filter));
+            DeleteResult deleteResult;
+            if (session == null)
+            {
+                deleteResult = MongoCollection.DeleteMany(filter);
+            }
+            else
+            {
+                deleteResult = MongoCollection.DeleteMany(session, filter);
+            }
+            return new GoDeleteResult(deleteResult);
         }
 
-        public async Task<GoDeleteResult> DeleteManyAsync(Expression<Func<TDocument, bool>> filter)
+        async Task<GoDeleteResult> IGoCollection<TDocument>.DeleteManyAsync(IClientSessionHandle session,
+                                                                            Expression<Func<TDocument, bool>> filter)
         {
-            return new GoDeleteResult(await MongoCollection.DeleteManyAsync(filter));
+            DeleteResult deleteResult;
+            if (session == null)
+            {
+                deleteResult = await MongoCollection.DeleteManyAsync(filter);
+            }
+            else
+            {
+                deleteResult = await MongoCollection.DeleteManyAsync(session, filter);
+            }
+            return new GoDeleteResult(deleteResult);
         }
 
-        public IGoBulker<TDocument> NewBulker()
-        {
-            return new GoBulker<TDocument>(MongoCollection);
-        }
+        #endregion
     }
 }

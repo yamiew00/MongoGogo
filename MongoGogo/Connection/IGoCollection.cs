@@ -260,5 +260,125 @@ namespace MongoGogo.Connection
         /// Create new IGoBulker instance of this collection.
         /// </summary>
         public IGoBulker<TDocument> NewBulker();
+
+        #region Sessions
+
+        internal IEnumerable<TDocument> Find(IClientSessionHandle session,
+                                             Expression<Func<TDocument, bool>> filter,
+                                             Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                             GoFindOption<TDocument> goFindOption = default);
+
+        internal Task<IEnumerable<TDocument>> FindAsync(IClientSessionHandle session,
+                                                        Expression<Func<TDocument, bool>> filter,
+                                                        Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                                        GoFindOption<TDocument> goFindOption = default);
+
+        internal TDocument FindOne(IClientSessionHandle session,
+                                   Expression<Func<TDocument, bool>> filter,
+                                   Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                   GoFindOption<TDocument> goFindOption = default);
+
+        internal Task<TDocument> FindOneAsync(IClientSessionHandle session,
+                                              Expression<Func<TDocument, bool>> filter,
+                                              Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = default,
+                                              GoFindOption<TDocument> goFindOption = default);
+
+        internal void InsertOne(IClientSessionHandle session,
+                                TDocument document);
+
+        internal Task InsertOneAsync(IClientSessionHandle session,
+                                     TDocument document);
+
+        internal void InsertMany(IClientSessionHandle session,
+                                 IEnumerable<TDocument> documents);
+
+        internal Task InsertManyAsync(IClientSessionHandle session,
+                                      IEnumerable<TDocument> documents);
+
+        internal GoReplaceResult ReplaceOne(IClientSessionHandle session,
+                                            Expression<Func<TDocument, bool>> filter,
+                                            TDocument document,
+                                            bool isUpsert = false);
+
+        internal Task<GoReplaceResult> ReplaceOneAsync(IClientSessionHandle session,
+                                                       Expression<Func<TDocument, bool>> filter,
+                                                       TDocument document,
+                                                       bool isUpsert = false);
+
+        internal long Count(IClientSessionHandle session,
+                            Expression<Func<TDocument, bool>> filter);
+
+        internal Task<long> CountAsync(IClientSessionHandle session,
+                                       Expression<Func<TDocument, bool>> filter);
+
+        internal GoUpdateResult UpdateOne(IClientSessionHandle session,
+                                          Expression<Func<TDocument, bool>> filter,
+                                          Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                          bool isUpsert = false);
+
+        /// <summary>
+        /// Asynchronously updates a single document matching the filter.
+        /// </summary>
+        /// <param name="filter">The filter to select the document.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
+        /// <param name="isUpsert">Whether to create a new document if no match is found.</param>
+        /// <returns>The result of the update operation.</returns>
+        internal Task<GoUpdateResult> UpdateOneAsync(IClientSessionHandle session,
+                                                     Expression<Func<TDocument, bool>> filter,
+                                                     Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                     bool isUpsert = false);
+
+        /// <summary>
+        /// Updates multiple documents matching the filter.
+        /// </summary>
+        /// <param name="filter">The filter to select the documents.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
+        /// <returns>The result of the update operation.</returns>
+        internal GoUpdateResult UpdateMany(IClientSessionHandle session,
+                                           Expression<Func<TDocument, bool>> filter,
+                                           Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder);
+
+        /// <summary>
+        /// Asynchronously updates multiple documents matching the filter.
+        /// </summary>
+        /// <param name="filter">The filter to select the documents.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
+        /// <returns>The result of the update operation.</returns>
+        internal Task<GoUpdateResult> UpdateManyAsync(IClientSessionHandle session,
+                                                      Expression<Func<TDocument, bool>> filter,
+                                                      Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder);
+
+        /// <summary>
+        /// Deletes a single document matching the filter.
+        /// </summary>
+        /// <param name="filter">The filter to select the document.</param>
+        /// <returns>The result of the delete operation.</returns>
+        internal GoDeleteResult DeleteOne(IClientSessionHandle session,
+                                          Expression<Func<TDocument, bool>> filter);
+
+        /// <summary>
+        /// Asynchronously deletes a single document matching the filter.
+        /// </summary>
+        /// <param name="filter">The filter to select the document.</param>
+        /// <returns>The result of the delete operation.</returns>
+        internal Task<GoDeleteResult> DeleteOneAsync(IClientSessionHandle session,
+                                                     Expression<Func<TDocument, bool>> filter);
+
+        /// <summary>
+        /// Deletes multiple documents matching the filter.
+        /// </summary>
+        /// <param name="filter">The filter to select the documents.</param>
+        /// <returns>The result of the delete operation.</returns>
+        internal GoDeleteResult DeleteMany(IClientSessionHandle session,
+                                           Expression<Func<TDocument, bool>> filter);
+
+        /// <summary>
+        /// Asynchronously deletes multiple documents matching the filter.
+        /// </summary>
+        /// <param name="filter">The filter to select the documents.</param>
+        /// <returns>The result of the delete operation.</returns>
+        internal Task<GoDeleteResult> DeleteManyAsync(IClientSessionHandle session,
+                                                      Expression<Func<TDocument, bool>> filter);
+        #endregion
     }
 }
