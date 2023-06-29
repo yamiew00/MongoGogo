@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoGogo.Connection.Transactions;
+using System;
 
 namespace MongoGogo.Connection
 {
@@ -21,9 +22,9 @@ namespace MongoGogo.Connection
             return collection.NewBulker();
         }
 
-        public IGoTransaction<TContext> CreateTransaction()
+        public IGoTransaction<TContext> CreateTransaction(GoTransactionOption option = null)
         {
-            return new GoTransaction<TContext>(_goContext, _serviceProvider);
+            return new GoTransaction<TContext>(option, _goContext, _serviceProvider);
         }
     }
 }

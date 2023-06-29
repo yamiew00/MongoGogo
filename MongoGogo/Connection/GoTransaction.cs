@@ -10,6 +10,7 @@ namespace MongoGogo.Connection
 {
     internal class GoTransaction<TContext> : IGoTransaction<TContext>
     {
+        private readonly GoTransactionOption _option;
         private readonly IGoContext<TContext> _goContext;
         private readonly IServiceProvider _serviceProvider;
 
@@ -17,9 +18,11 @@ namespace MongoGogo.Connection
 
         private GoTransactionStatus _status { get; set; }
 
-        public GoTransaction(IGoContext<TContext> goContext,
+        public GoTransaction(GoTransactionOption option,
+                             IGoContext<TContext> goContext,
                              IServiceProvider serviceProvider)
         {
+            this._option = option;
             this._goContext = goContext;
             this._serviceProvider = serviceProvider;
             _status = new GoTransactionStatus();
@@ -29,7 +32,15 @@ namespace MongoGogo.Connection
         {
             if (!_status.IsSessionStart)
             {
-                _session = _goContext.StartSession();
+                var sessionOption = new ClientSessionOptions();
+                if (_option != null && 
+                   _option.CausalConsistency.HasValue && 
+                   !_option.CausalConsistency.Value)
+                {
+                    sessionOption.CausalConsistency = false;
+                }
+
+                _session = _goContext.StartSession(sessionOption);
                 _session.StartTransaction();
                 _status.IsSessionStart = true;
             }

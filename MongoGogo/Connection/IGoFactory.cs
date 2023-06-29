@@ -1,4 +1,6 @@
-﻿namespace MongoGogo.Connection
+﻿using MongoGogo.Connection.Transactions;
+
+namespace MongoGogo.Connection
 {
     /// <summary>
     /// Factory for creating transaction and bulker.
@@ -11,7 +13,7 @@
         /// </summary>
         /// <returns>The IGoTransaction</returns>
         /// /// <remarks>Calling this method does not initiate a session or transaction.</remarks>
-        public IGoTransaction<TContext> CreateTransaction();
+        public IGoTransaction<TContext> CreateTransaction(GoTransactionOption option = default);
         
         /// <summary>
         /// Gets an IGoBulker for performing bulk write operations on a single collection.
