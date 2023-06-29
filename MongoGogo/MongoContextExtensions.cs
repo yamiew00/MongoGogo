@@ -14,12 +14,23 @@ namespace Microsoft.Extensions.DependencyInjection
             //build the composite root of Context
             GoContainer goContainer = new GoContainer().Build(builder => builder.AddMongoContext(mongoContext, option));
 
+            //todo: not a good way to manage serviceProvider
+            goContainer.NeedIServiceProvider = false;   
+
             foreach (var registration in goContainer.Registrations)
             {
                 if(registration.LifeTime == LifeCycleType.Singleton)
                 {
-                    serviceCollection.AddSingleton(serviceType: registration.RegisteredType,
-                                                   implementationInstance: goContainer.Resolve(registration.RegisteredType));
+                    if(registration.Instance != null)
+                    {
+                        serviceCollection.AddSingleton(serviceType: registration.RegisteredType,
+                                                       implementationInstance: goContainer.Resolve(registration.RegisteredType));
+                    }
+                    else
+                    {
+                        serviceCollection.AddSingleton(serviceType: registration.RegisteredType,
+                                                       implementationType: registration.MappedType);
+                    }
                 }
                 else if(registration.LifeTime == LifeCycleType.Scoped)
                 {

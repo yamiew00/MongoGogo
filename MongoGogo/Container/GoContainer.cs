@@ -16,6 +16,10 @@ namespace MongoGogo.Container
 
         private ServiceBuilder _Builder;
 
+        internal bool NeedIServiceProvider { get; set; } = true;
+
+        private bool IsIServiceProviderInitialized = false;
+
         public GoContainer()
         {
             Registrations = new List<GoRegistration>();
@@ -68,6 +72,13 @@ namespace MongoGogo.Container
         /// <exception cref="Exception"></exception>
         public object Resolve(Type type)
         {
+            //todo: not a good way to manage serviceProvider
+            if(NeedIServiceProvider && !IsIServiceProviderInitialized)
+            {
+                AddIServiceProvider();
+                IsIServiceProviderInitialized = true;
+            }
+
             var registrationDictionary = Registrations.ToDictionary(reg => reg.RegisteredType);
             if (!registrationDictionary.TryGetValue(type, out var registration)) throw new Exception($"error resolving type: {type.GetFriendlyName()}");
 
@@ -82,6 +93,13 @@ namespace MongoGogo.Container
             var parameterInstances = parameterInfos.Select(paramInfo => Resolve(paramInfo.ParameterType)).ToArray();
 
             return Activator.CreateInstance(registration.MappedType, parameterInstances);
+        }
+
+        private void AddIServiceProvider()
+        {
+            Registrations.Add(new GoRegistration(registeredType: typeof(IServiceProvider),
+                                                 instance: new GoServiceProvider(this),
+                                                 lifeTime: LifeCycleType.Singleton));
         }
 
         private List<GoRegistration> RegisterContextAndDerived<TContext>(TContext context,
@@ -111,16 +129,26 @@ namespace MongoGogo.Container
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         private static List<GoRegistration> RegisterDerived(List<GoRegistration> registrations,
-                                                     Type contextType,
-                                                     LifeCycleOption option = default)
+                                                            Type contextType,
+                                                            LifeCycleOption option = default)
         {
             //alltypes
             IEnumerable<Type> AllTypes = AppDomain.CurrentDomain
                                                   .GetAssemblies()
                                                   .SelectMany(s => s.GetTypes());
 
+            //1. register the factor
+            //   IGoContext<TContext> → IGoFactory<TContext>
+            var factoryServiceType = typeof(IGoFactory<>).GetGenericTypeDefinition()
+                                                         .MakeGenericType(contextType);
+            var factoryImplementType = typeof(GoFactory<>).GetGenericTypeDefinition()
+                                                          .MakeGenericType(contextType);
+            registrations.Add(new GoRegistration(registeredType: factoryServiceType,
+                                                 mappedType: factoryImplementType,
+                                                 LifeCycleType.Singleton));
+
             //2. auto inject Database using reflection
-            //IDatabase<TDatabase> →  Database<TContext, TDatabase> for all inner class TDatabase in TContext
+            //   IDatabase<TDatabase> →  Database<TContext, TDatabase> for all inner class TDatabase in TContext
             var dbTypes = contextType.GetNestedTypes();
             foreach (var dbType in dbTypes.Where(type => type.GetCustomAttribute<MongoDatabaseAttribute>() != null))
             {
@@ -140,8 +168,8 @@ namespace MongoGogo.Container
                                                          .MakeGenericType(contextType, dbType);
 
                 registrations.Add(new GoRegistration(registeredType: serviceType,
-                                                   mappedType: implementType,
-                                                   option.DatabaseLifeCycle));
+                                                     mappedType: implementType,
+                                                     option.DatabaseLifeCycle));
             }
 
             //3. inject IGoCollections, IMongoCollections and IGoCollectionObservers using reflection

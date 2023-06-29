@@ -17,8 +17,8 @@ namespace MongoGogo.Container
         public string MappedName { get => MappedType.GetFriendlyName(); }
 
         public GoRegistration(Type registeredType,
-                            Type mappedType,
-                            LifeCycleType lifeTime)
+                              Type mappedType,
+                              LifeCycleType lifeTime)
         {
             RegisteredType = registeredType;
             MappedType = mappedType;

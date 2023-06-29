@@ -9,7 +9,7 @@ namespace MongoGogo.Connection
     /// <summary>
     /// Abstract class of a IMongoContext.
     /// </summary>
-    /// <typeparam name="TContext"></typeparam>
+    /// <typeparam name="TContext">The type of the mongodb context.</typeparam>
     public abstract class GoContext<TContext> : IGoContext<TContext>
     {
         private readonly IMongoClient _Client;
