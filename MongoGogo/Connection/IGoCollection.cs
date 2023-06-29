@@ -21,6 +21,13 @@ namespace MongoGogo.Connection
         public IMongoCollection<TDocument> MongoCollection { get; }
 
         /// <summary>
+        /// Create new IGoBulker instance of this collection.
+        /// </summary>
+        public IGoBulker<TDocument> NewBulker();
+
+        #region Basic operations
+
+        /// <summary>
         /// Finds the documents matching the filter.
         /// </summary>
         /// <param name="filter">The filter.</param>
@@ -256,10 +263,7 @@ namespace MongoGogo.Connection
         /// <returns>The result of the delete operation.</returns>
         public Task<GoDeleteResult> DeleteManyAsync(Expression<Func<TDocument, bool>> filter);
 
-        /// <summary>
-        /// Create new IGoBulker instance of this collection.
-        /// </summary>
-        public IGoBulker<TDocument> NewBulker();
+        #endregion
 
         #region Sessions
 

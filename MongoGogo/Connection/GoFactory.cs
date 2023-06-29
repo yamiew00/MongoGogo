@@ -4,10 +4,13 @@ namespace MongoGogo.Connection
 {
     internal class GoFactory<TContext> : IGoFactory<TContext>
     {
+        private readonly IGoContext<TContext> _goContext;
         private readonly IServiceProvider _serviceProvider;
 
-        public GoFactory(IServiceProvider serviceProvider)
+        public GoFactory(IGoContext<TContext> goContext,
+                         IServiceProvider serviceProvider)
         {
+            this._goContext = goContext;
             this._serviceProvider = serviceProvider;
         }
 
@@ -20,7 +23,7 @@ namespace MongoGogo.Connection
 
         public IGoTransaction<TContext> CreateTransaction()
         {
-            throw new NotImplementedException();
+            return new GoTransaction<TContext>(_goContext, _serviceProvider);
         }
     }
 }

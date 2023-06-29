@@ -15,7 +15,9 @@ namespace MongoGogo.Connection
 
         public Task CommitAsync();
 
-        #region CRUD
+        public IGoBulker<TDocument> NewBulker<TDocument>();
+
+        #region Basic Operations
         public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter);
 
         public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter,
@@ -95,8 +97,6 @@ namespace MongoGogo.Connection
         public Task<GoDeleteResult> DeleteManyAsync<TDocument>(Expression<Func<TDocument, bool>> filter);
 
         #endregion
-
-        public IGoBulker<TDocument> NewBulker<TDocument>();
     }
 
 }
