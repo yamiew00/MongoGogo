@@ -633,3 +633,144 @@ public class MyController : ControllerBase
 
 **By using the `goBulker` object, you can group multiple database operations together and execute them in a single batch, similar to the logic used in EF Core. This can help improve performance and reduce round-trips to the database.**
 
+
+
+#### 8. Transaction Operations (IGoTransaction<TContext>)
+
+> Starting from version 5.1.0, transactions are supported, giving users the ability to execute multiple operations within a single, atomic session.
+
+- A `IGoTransaction` instance can be obtained using the `CreateTransaction` method of `IGoFactory`. `IGoTransaction` object allows you to organize multiple database operations within a single, atomic session.
+
+- The transaction only becomes "usable" once you have called the `Commit` or `CommitAsync` methods to apply the changes to the database. After this, the transaction becomes "unusable" and cannot be used again.
+
+- One important feature of transactions is the ability to "rollback" any changes that occurred within the transaction session in case of any errors. In other words, if an exception is thrown at any point during the transaction session, none of the changes made in the transaction will be committed. This ensures that your database remains consistent even when unexpected errors occur.
+
+Here's an example of how to use a transaction:
+
+```c#
+public class MyController : ControllerBase
+{
+    private readonly IGoFactory<MyContext> _goFactory;
+
+    public MyController(IGoFactory<MyContext> goFactory)
+    {
+      this._goFactory = goFactory;
+    }
+    
+    [HttpPost("TransactionSample")]
+    public async Task<IActionResult> TransactionSample()
+    {
+        var transaction = _goFactory.CreateTransaction();
+        transaction.InsertOne(new Hospital { Name = "General Hospital", BedCount = 200 });
+		transaction.UpdateOne(hos => hos.Name == "General Hospital" && hos.BedCount == 200,
+                              builder => builder.Set(hos => hos.BedCount, 250));
+        
+	    transaction.Commit();
+        
+        return Ok();
+    }
+}
+
+```
+
+- Inside the method, a new `IGoTransaction` instance is created using the `CreateTransaction` method of `IGoFactory`. The `IGoTransaction` object allows you to organize multiple database operations within a single atomic session.
+- The code adds an insert operation and an update operation to the `IGoTransaction` using the `InsertOne` and `UpdateOne` methods, respectively. The insert operation adds the `Hospital` object to the collection, and the update operation modifies the `BedCount` of the hospital with the specified name to 250.
+- Finally, the `Commit` method is called on the `IGoTransaction` object to execute the pending operations and apply the changes to the database.
+
+
+
+---
+
+##### How to execute bulk write in a Transaction (IGoTransBulker\<TDocument>)
+
+In addition to simple operations, `IGoTransaction` also supports bulk write operations. This can be achieved using the `NewTransBulker` method of `IGoTransaction` to create a bulker within the transaction. It's important to note that any changes made using the bulker will not be applied to the database until `Commit` or `CommitAsync` method is called, even if you have called `SaveChanges` or `SaveChangesAsync` method on the bulker.
+
+Here's an example of using a bulker in a transaction:
+
+```c#
+[HttpPost("TransBulkerSample")]
+public async Task<IActionResult> TransBulkerSample()
+{
+    var transaction = _goFactory.CreateTransaction();
+
+    // First bulker for operations on Hospital collection
+    var hospitalBulker = transaction.NewTransBulker<Hospital>();
+    hospitalBulker.InsertOne(new Hospital { Name = "My Hospital", BedCount = 200 });
+    hospitalBulker.UpdateOne(hos => hos.Name == "My Hospital" && hos.BedCount == 200,
+                     builder => builder.Set(hos => hos.BedCount, 250));
+    hospitalBulker.SaveChanges();
+
+    // Second bulker for operations on another collection, e.g., Doctor collection
+    var doctorBulker = transaction.NewTransBulker<Doctor>();
+    doctorBulker.InsertOne(new Doctor { Name = "Dr. Smith", Specialization = "Cardiology" });
+    doctorBulker.UpdateOne(doc => doc.Name == "Dr. Smith" && doc.Specialization == "Cardiology",
+                     builder => builder.Set(doc => doc.Specialization, "Neurology"));
+    doctorBulker.SaveChanges();
+
+    transaction.Commit();
+
+    return Ok();
+}
+
+```
+
+- In this method, an `IGoTransaction` instance is first created using the `CreateTransaction` method of the `IGoFactory`. The `IGoTransaction` object allows you to organize multiple database operations within a single atomic session.
+- Next, two `IGoTransBulker` instances are created using the `NewTransBulker` method of the `IGoTransaction`. These instances allow bulk operations on the `Hospital` and `Doctor` collections respectively.
+- For both `IGoTransBulker` instances, an insert operation and an update operation are added using the `InsertOne` and `UpdateOne` methods, respectively. The insert operations add new instances of `Hospital` and `Doctor` to their respective collections. The update operations modify the `BedCount` of the specified hospital to 250 and the `Specialization` of the specified doctor to "Neurology".
+- The `SaveChanges` method is called on both `IGoTransBulker` instances to prepare the operations for execution in the transaction context.
+- Finally, the `Commit` method is called on the `IGoTransaction` object to execute the pending operations and apply the changes to the database.
+
+
+
+**By utilizing the `IGoTransaction` object, you can group multiple database operations together and execute them within a single, atomic session. This not only ensures data consistency but also enhances the integrity of your data operations.**
+
+
+
+---
+
+##### Error Handling and Rollback in Transaction
+
+- **The `IGoTransaction` interface will automatically rollback the transaction if any operation inside the transaction throws an exception.** Below is an example of how to properly handle errors in a transaction:
+
+```c#
+[HttpGet("TransactionWithErrorHandling")]
+public async Task<IActionResult> TransactionWithErrorHandling()
+{
+    var transaction = _goFactory.CreateTransaction();
+    try
+    {
+        // Performing operations within the transaction
+        transaction.InsertOne(new Hospital { Name = "General Hospital", BedCount = 200 });
+        transaction.UpdateOne(hos => hos.Name == "General Hospital" && hos.BedCount == 200,
+                              builder => builder.Set(hos => hos.BedCount, 250));
+
+        // Committing the transaction. If an exception occurs in any transaction operation, the commit will be invalid and the transaction will automatically rollback.
+        transaction.Commit();
+    }
+    catch(Exception ex)
+    {
+        // If any exception occurred, the changes in the transaction won't be applied to the database. Do not attempt to commit the transaction again in this case, as it will be ineffective and throw an exception.
+        Console.WriteLine($"An error occurred: {ex.Message}");
+        return BadRequest(ex.Message);
+    }
+    
+    // (Don't do this) Attempting to commit after an exception has been thrown will result in another exception, as the initial commit would have been invalidated by the initial exception.
+    // finally 
+    //{
+    //    transaction.Commit(); 
+    //}
+    
+    return Ok();
+}
+
+```
+
+In this code snippet:
+
+- First, we create a new `IGoTransaction` instance.
+- Within the `try` block, we perform a series of operations including inserting and updating records in the database. If any of these operations encounter an exception, the `catch` block will handle it.
+- The `Commit` function is then called to apply the changes made in the operations to the database. If an exception was thrown during the operations, the commit will be invalid, causing the transaction to automatically rollback.
+- Inside the `catch` block, the exception message is printed out to the console, and a `BadRequest` response is returned with the exception message. It's important to note that you should not attempt to commit the transaction again after an exception has been thrown, as the commit will be ineffective and will throw another exception.
+- The commented `finally` block illustrates a common mistake - trying to commit the transaction after an exception has been thrown. As indicated, this should be avoided as it will result in another exception, because the initial commit would have been invalidated by the initial exception.
+
+Remember, as a best practice, always use `try` and `catch` blocks when performing transactions to handle potential errors and prevent inconsistent database states.
