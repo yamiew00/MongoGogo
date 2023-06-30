@@ -7,12 +7,12 @@ namespace MongoGogo.Connection
     {
         public long ModifiedCount { get; private set; }
 
-        public ObjectId? UpsertedId { get; private set; }
+        public BsonValue UpsertedId { get; private set; }
 
         public GoUpdateResult(UpdateResult mongoUpdateResult)
         {
             ModifiedCount = mongoUpdateResult.ModifiedCount;
-            UpsertedId = (mongoUpdateResult.UpsertedId == null) ? default : mongoUpdateResult.UpsertedId.AsBsonValue.AsObjectId;
+            UpsertedId = mongoUpdateResult.UpsertedId;
         }
     }
 }
