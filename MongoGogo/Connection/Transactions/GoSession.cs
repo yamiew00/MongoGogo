@@ -57,7 +57,7 @@ namespace MongoGogo.Connection.Transactions
 
         internal async Task CommitTransactionAsync()
         {
-            await _session?.CommitTransactionAsync();
+            if(_session != null) await _session.CommitTransactionAsync();
         }
 
         public void Dispose()

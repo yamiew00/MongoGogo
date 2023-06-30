@@ -7,15 +7,36 @@ using System.Threading.Tasks;
 namespace MongoGogo.Connection
 {
     /// <summary>
-    /// 
+    /// A MongoDB transaction.
     /// </summary>
-    /// <typeparam name="TContext">The type of the mongodb context.</typeparam>
+    /// <typeparam name="TContext">The type of the MongoDB context.</typeparam>
     public interface IGoTransaction<TContext> : IDisposable
     {
+        /// <summary>
+        /// Commits the MongoDB transaction synchronously.
+        /// </summary>
+        /// <remarks>
+        /// After committing, the transaction becomes unusable.
+        /// </remarks>
         public void Commit();
 
+        /// <summary>
+        /// Commits the MongoDB transaction asynchronously.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <remarks>
+        /// After committing, the transaction becomes unusable.
+        /// </remarks>
         public Task CommitAsync();
 
+        /// <summary>
+        /// Creates a new bulker instance for performing bulk write operations within the transaction.
+        /// </summary>
+        /// <typeparam name="TDocument">The type of the document.</typeparam>
+        /// <returns>An instance of IGoTransBulker allowing bulk write operations.</returns>
+        /// <remarks>
+        /// Any bulk write operations performed will only take effect after the transaction is committed.
+        /// </remarks>
         public IGoTransBulker<TDocument> NewTransBulker<TDocument>();
 
         #region Basic Operations
@@ -99,5 +120,4 @@ namespace MongoGogo.Connection
 
         #endregion
     }
-
 }

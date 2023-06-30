@@ -12,7 +12,7 @@ namespace MongoGogo.Connection
         /// Gets an IGoTransaction for performing transactional operations.
         /// </summary>
         /// <returns>The IGoTransaction</returns>
-        /// /// <remarks>Calling this method does not initiate a session or transaction.</remarks>
+        /// <remarks>Calling this method does not initiate a session or transaction.</remarks>
         public IGoTransaction<TContext> CreateTransaction(GoTransactionOption option = default);
         
         /// <summary>
