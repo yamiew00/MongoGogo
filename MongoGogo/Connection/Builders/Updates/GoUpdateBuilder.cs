@@ -1,5 +1,7 @@
 ﻿using MongoDB.Driver;
+using MongoGogo.Connection.Builders.Updates;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace MongoGogo.Connection
@@ -10,36 +12,154 @@ namespace MongoGogo.Connection
     /// </summary>
     /// <typeparam name="TDocument">The type of the document.</typeparam>
 
-    public class GoUpdateBuilder<TDocument>
+    public class GoUpdateBuilder<TDocument> : IGoUpdateDefinition<TDocument>
     {
         internal GoUpdateBuilder() {}
 
-        /// <summary>
-        /// Creates a new $set update definition for a specified field.
-        /// The $set operator replaces the value of a field with the specified value.
-        /// </summary>
-        /// <typeparam name="TField">The type of the field.</typeparam>
-        /// <param name="field">The field selector expression.</param>
-        /// <param name="value">The new value.</param>
-        /// <returns>The update definition.</returns>
-        public GoUpdateDefinition<TDocument> Set<TField>(Expression<Func<TDocument, TField>> field, TField value)
+        public GoUpdateDefinition<TDocument> AddToSet<TItem>(Expression<Func<TDocument, IEnumerable<TItem>>> field,
+                                                             TItem value)
         {
-            var goDefinition = new GoUpdateDefinition<TDocument>();
-            goDefinition.MongoUpdateDefinition = Builders<TDocument>.Update.Set(field, value);
-            return goDefinition;
+            var updateDefinition = Builders<TDocument>.Update.AddToSet(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
         }
 
-        /// <summary>
-        /// Creates a new $unset update definition for a specified field.
-        /// The $unset operator removes the specified field from a document.
-        /// </summary>
-        /// <param name="field">The field selector expression.</param>
-        /// <returns>The update definition.</returns>
+        public GoUpdateDefinition<TDocument> AddToSetEach<TItem>(Expression<Func<TDocument, IEnumerable<TItem>>> field,
+                                                                 IEnumerable<TItem> values)
+        {
+            var updateDefinition = Builders<TDocument>.Update.AddToSetEach(field, values);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> BitwiseAnd<TField>(Expression<Func<TDocument, TField>> field,
+                                                                TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.BitwiseAnd(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> BitwiseOr<TField>(Expression<Func<TDocument, TField>> field,
+                                                               TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.BitwiseOr(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> BitwiseXor<TField>(Expression<Func<TDocument, TField>> field,
+                                                                TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.BitwiseXor(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> CurrentDate(Expression<Func<TDocument, object>> field,
+                                                         UpdateDefinitionCurrentDateType? type = null)
+        {
+            var updateDefinition = Builders<TDocument>.Update.CurrentDate(field, type);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> Inc<TField>(Expression<Func<TDocument, TField>> field,
+                                                         TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.Inc(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> Max<TField>(Expression<Func<TDocument, TField>> field,
+                                                         TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.Max(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> Min<TField>(Expression<Func<TDocument, TField>> field,
+                                                         TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.Min(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> Mul<TField>(Expression<Func<TDocument, TField>> field,
+                                                         TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.Mul(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> PopFirst(Expression<Func<TDocument, object>> field)
+        {
+            var updateDefinition = Builders<TDocument>.Update.PopFirst(field);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> PopLast(Expression<Func<TDocument, object>> field)
+        {
+            var updateDefinition = Builders<TDocument>.Update.PopLast(field);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> Pull<TItem>(Expression<Func<TDocument, IEnumerable<TItem>>> field,
+                                                         TItem value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.Pull(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> PullAll<TItem>(Expression<Func<TDocument, IEnumerable<TItem>>> field,
+                                                            IEnumerable<TItem> values)
+        {
+            var updateDefinition = Builders<TDocument>.Update.PullAll(field, values);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> PullFilter<TItem>(Expression<Func<TDocument, IEnumerable<TItem>>> field,
+                                                               Expression<Func<TItem, bool>> filter)
+        {
+            var updateDefinition = Builders<TDocument>.Update.PullFilter(field, filter);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> Push<TItem>(Expression<Func<TDocument, IEnumerable<TItem>>> field,
+                                                         TItem value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.Push(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> PushEach<TItem>(Expression<Func<TDocument, IEnumerable<TItem>>> field,
+                                                             IEnumerable<TItem> values,
+                                                             int? slice = null,
+                                                             int? position = null)
+        {
+            var updateDefinition = Builders<TDocument>.Update.PushEach(field, values, slice, position);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> Rename(Expression<Func<TDocument, object>> field,
+                                                    string newName)
+        {
+            var updateDefinition = Builders<TDocument>.Update.Rename(field, newName);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> Set<TField>(Expression<Func<TDocument, TField>> field,
+                                                         TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.Set(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
+        public GoUpdateDefinition<TDocument> SetOnInsert<TField>(Expression<Func<TDocument, TField>> field,
+                                                                 TField value)
+        {
+            var updateDefinition = Builders<TDocument>.Update.SetOnInsert(field, value);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
+        }
+
         public GoUpdateDefinition<TDocument> Unset(Expression<Func<TDocument, object>> field)
         {
-            var goDefinition = new GoUpdateDefinition<TDocument>();
-            goDefinition.MongoUpdateDefinition = Builders<TDocument>.Update.Unset(field);
-            return goDefinition;
+            var updateDefinition = Builders<TDocument>.Update.Unset(field);
+            return new GoUpdateDefinition<TDocument>(updateDefinition);
         }
     }
 }
