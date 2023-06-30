@@ -8,9 +8,9 @@ namespace MongoGogo.Connection
 {
     internal class GoBulker<TDocument> : IGoBulker<TDocument>
     {
-        private List<WriteModel<TDocument>> _writeModels;
+        protected List<WriteModel<TDocument>> _writeModels;
 
-        private readonly IMongoCollection<TDocument> _collection;
+        protected readonly IMongoCollection<TDocument> _collection;
 
         internal GoBulker(IMongoCollection<TDocument> collection)
         {
@@ -32,22 +32,22 @@ namespace MongoGogo.Connection
         }
 
         public void UpdateOne(Expression<Func<TDocument, bool>> filter,
-                              Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
+                              Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
                               bool isUpsert = false)
         {
             var updateBuilder = new GoUpdateBuilder<TDocument>();
-            var mongoUpdateDefinition = set.Compile()
+            var mongoUpdateDefinition = updateDefinitionBuilder.Compile()
                                            .Invoke(updateBuilder).MongoUpdateDefinition;
 
             _writeModels.Add(new UpdateOneModel<TDocument>(filter, mongoUpdateDefinition) { IsUpsert = isUpsert});
         }
 
         public void UpdateMany(Expression<Func<TDocument, bool>> filter,
-                               Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set)
+                               Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
         {
             var updateBuilder = new GoUpdateBuilder<TDocument>();
-            var mongoUpdateDefinition = set.Compile()
-                                           .Invoke(updateBuilder).MongoUpdateDefinition;
+            var mongoUpdateDefinition = updateDefinitionBuilder.Compile()
+                                                               .Invoke(updateBuilder).MongoUpdateDefinition;
             _writeModels.Add(new UpdateManyModel<TDocument>(filter, mongoUpdateDefinition));
         }
         public void DeleteOne(Expression<Func<TDocument, bool>> filter)
@@ -67,14 +67,14 @@ namespace MongoGogo.Connection
             _writeModels.Add(new ReplaceOneModel<TDocument>(filter, document) { IsUpsert = isUpsert});
         }
 
-        public GoBulkResult SaveChanges()
+        public virtual GoBulkResult SaveChanges()
         {
             var result = _collection.BulkWrite(_writeModels);
             _writeModels = new List<WriteModel<TDocument>>();
             return new GoBulkResult(result);
         }
 
-        public async Task<GoBulkResult> SaveChangesAsync()
+        public virtual async Task<GoBulkResult> SaveChangesAsync()
         {
             var result = await _collection.BulkWriteAsync(_writeModels);
             _writeModels = new List<WriteModel<TDocument>>();

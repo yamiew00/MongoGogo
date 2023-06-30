@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoGogo.Connection.Transactions;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace MongoGogo.Connection
 
         public Task CommitAsync();
 
-        public IGoBulker<TDocument> NewBulker<TDocument>();
+        public IGoTransBulker<TDocument> NewTransBulker<TDocument>();
 
         #region Basic Operations
         public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter);

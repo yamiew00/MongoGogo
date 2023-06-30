@@ -10,234 +10,238 @@ namespace MongoGogo.Connection
 {
     internal class GoTransaction<TContext> : IGoTransaction<TContext>
     {
-        private readonly GoTransactionOption _option;
         private readonly IGoContext<TContext> _goContext;
         private readonly IServiceProvider _serviceProvider;
 
-        private IClientSessionHandle _session;
-
-        private GoTransactionStatus _status { get; set; }
+        private GoSession<TContext> _goSession { get; set; }
 
         public GoTransaction(GoTransactionOption option,
                              IGoContext<TContext> goContext,
                              IServiceProvider serviceProvider)
         {
-            this._option = option;
             this._goContext = goContext;
             this._serviceProvider = serviceProvider;
-            _status = new GoTransactionStatus();
+            _goSession = new GoSession<TContext>(goContext, option);
         }
 
-        private IGoCollection<TDocument> TryStartAndGetGoCollection<TDocument>()
+        private IGoCollection<TDocument> GetIGoCollection<TDocument>()
         {
-            if (!_status.IsSessionStart)
-            {
-                var sessionOption = new ClientSessionOptions();
-                if (_option != null && 
-                   _option.CausalConsistency.HasValue && 
-                   !_option.CausalConsistency.Value)
-                {
-                    sessionOption.CausalConsistency = false;
-                }
-
-                _session = _goContext.StartSession(sessionOption);
-                _session.StartTransaction();
-                _status.IsSessionStart = true;
-            }
-            _status.HasAnyOperation = true;
-            var result = (IGoCollection<TDocument>)_serviceProvider.GetService(typeof(IGoCollection<TDocument>));
+            var result = _serviceProvider.GetService(typeof(IGoCollection<TDocument>)) as IGoCollection<TDocument>;
             if (result == null) throw new GoInvalidTypeException<TDocument>();
+
             return result;
         }
 
         public void Commit()
         {
-            if(_status.HasAnyOperation) _session.CommitTransaction();
+            _goSession.CommitTransaction();
             this.Dispose();
         }
 
         public async Task CommitAsync()
         {
-            if (_status.HasAnyOperation) await _session.CommitTransactionAsync();
+            await _goSession.CommitTransactionAsync();
             this.Dispose();
         }
 
         public void Dispose()
         {
-            _session?.Dispose();
+            _goSession.Dispose();
         }
 
-        public IGoBulker<TDocument> NewBulker<TDocument>()
+        public IGoTransBulker<TDocument> NewTransBulker<TDocument>()
         {
-            throw new NotImplementedException();
+            return new GoTransBulker<TContext, TDocument>(GetIGoCollection<TDocument>().MongoCollection, this._goSession);
         }
 
         public long Count<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.Count(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.Count(_goSession.Session, filter);
         }
 
         public Task<long> CountAsync<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.CountAsync(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.CountAsync(_goSession.Session, filter);
         }
 
         public GoDeleteResult DeleteMany<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>(); 
-            return collection.DeleteMany(_session, filter);
+            var collection = GetIGoCollection<TDocument>(); 
+            return collection.DeleteMany(_goSession.Session, filter);
         }
 
         public Task<GoDeleteResult> DeleteManyAsync<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.DeleteManyAsync(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.DeleteManyAsync(_goSession.Session, filter);
         }
 
         public GoDeleteResult DeleteOne<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.DeleteOne(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.DeleteOne(_goSession.Session, filter);
         }
 
         public Task<GoDeleteResult> DeleteOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.DeleteOneAsync(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.DeleteOneAsync(_goSession.Session, filter);
         }
 
         public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.Find(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.Find(_goSession.Session, filter);
         }
 
-        public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter, Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null, GoFindOption<TDocument> goFindOption = null)
+        public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                      Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                                      GoFindOption<TDocument> goFindOption = null)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.Find(_session, filter, projection, goFindOption);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.Find(_goSession.Session, filter, projection, goFindOption);
         }
 
-        public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter, GoFindOption<TDocument> goFindOption = null)
+        public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                      GoFindOption<TDocument> goFindOption = null)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.Find(_session, filter, default, goFindOption);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.Find(_goSession.Session, filter, default, goFindOption);
         }
 
         public Task<IEnumerable<TDocument>> FindAsync<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindAsync(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindAsync(_goSession.Session, filter);
         }
 
-        public Task<IEnumerable<TDocument>> FindAsync<TDocument>(Expression<Func<TDocument, bool>> filter, Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null, GoFindOption<TDocument> goFindOption = null)
+        public Task<IEnumerable<TDocument>> FindAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                 Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                                                 GoFindOption<TDocument> goFindOption = null)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindAsync(_session, filter, projection, goFindOption);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindAsync(_goSession.Session, filter, projection, goFindOption);
         }
 
-        public Task<IEnumerable<TDocument>> FindAsync<TDocument>(Expression<Func<TDocument, bool>> filter, GoFindOption<TDocument> goFindOption = null)
+        public Task<IEnumerable<TDocument>> FindAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                 GoFindOption<TDocument> goFindOption = null)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindAsync(_session, filter, default, goFindOption);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindAsync(_goSession.Session, filter, default, goFindOption);
         }
 
         public TDocument FindOne<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindOne(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindOne(_goSession.Session, filter);
         }
 
-        public TDocument FindOne<TDocument>(Expression<Func<TDocument, bool>> filter, Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null, GoFindOption<TDocument> goFindOption = null)
+        public TDocument FindOne<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                            Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                            GoFindOption<TDocument> goFindOption = null)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindOne(_session, filter, projection, goFindOption);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindOne(_goSession.Session, filter, projection, goFindOption);
         }
 
-        public TDocument FindOne<TDocument>(Expression<Func<TDocument, bool>> filter, GoFindOption<TDocument> goFindOption = null)
+        public TDocument FindOne<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                            GoFindOption<TDocument> goFindOption = null)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindOne(_session, filter, default, goFindOption);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindOne(_goSession.Session, filter, default, goFindOption);
         }
 
         public Task<TDocument> FindOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindOneAsync(_session, filter);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindOneAsync(_goSession.Session, filter);
         }
 
-        public Task<TDocument> FindOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter, Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null, GoFindOption<TDocument> goFindOption = null)
+        public Task<TDocument> FindOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                       Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
+                                                       GoFindOption<TDocument> goFindOption = null)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindOneAsync(_session, filter, projection, goFindOption);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindOneAsync(_goSession.Session, filter, projection, goFindOption);
         }
 
-        public Task<TDocument> FindOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter, GoFindOption<TDocument> goFindOption = null)
+        public Task<TDocument> FindOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                       GoFindOption<TDocument> goFindOption = null)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.FindOneAsync(_session, filter, default, goFindOption);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.FindOneAsync(_goSession.Session, filter, default, goFindOption);
         }
 
         public void InsertMany<TDocument>(IEnumerable<TDocument> documents)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            collection.InsertMany(_session, documents);
+            var collection = GetIGoCollection<TDocument>();
+            collection.InsertMany(_goSession.Session, documents);
         }
 
         public Task InsertManyAsync<TDocument>(IEnumerable<TDocument> documents)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.InsertManyAsync(_session, documents);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.InsertManyAsync(_goSession.Session, documents);
         }
 
         public void InsertOne<TDocument>(TDocument document)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            collection.InsertOne(_session, document);
+            var collection = GetIGoCollection<TDocument>();
+            collection.InsertOne(_goSession.Session, document);
         }
 
         public Task InsertOneAsync<TDocument>(TDocument document)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.InsertOneAsync(_session, document);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.InsertOneAsync(_goSession.Session, document);
         }
 
-        public GoReplaceResult ReplaceOne<TDocument>(Expression<Func<TDocument, bool>> filter, TDocument document, bool isUpsert = false)
+        public GoReplaceResult ReplaceOne<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                     TDocument document,
+                                                     bool isUpsert = false)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.ReplaceOne(_session, filter, document, isUpsert);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.ReplaceOne(_goSession.Session, filter, document, isUpsert);
         }
 
-        public Task<GoReplaceResult> ReplaceOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter, TDocument document, bool isUpsert = false)
+        public Task<GoReplaceResult> ReplaceOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                TDocument document,
+                                                                bool isUpsert = false)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.ReplaceOneAsync(_session, filter, document, isUpsert);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.ReplaceOneAsync(_goSession.Session, filter, document, isUpsert);
         }
 
-        public GoUpdateResult UpdateMany<TDocument>(Expression<Func<TDocument, bool>> filter, Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
+        public GoUpdateResult UpdateMany<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                    Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.UpdateMany(_session, filter, updateDefinitionBuilder);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.UpdateMany(_goSession.Session, filter, updateDefinitionBuilder);
         }
 
-        public Task<GoUpdateResult> UpdateManyAsync<TDocument>(Expression<Func<TDocument, bool>> filter, Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
+        public Task<GoUpdateResult> UpdateManyAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                               Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.UpdateManyAsync(_session, filter, updateDefinitionBuilder);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.UpdateManyAsync(_goSession.Session, filter, updateDefinitionBuilder);
         }
 
-        public GoUpdateResult UpdateOne<TDocument>(Expression<Func<TDocument, bool>> filter, Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder, bool isUpsert = false)
+        public GoUpdateResult UpdateOne<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                   Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                   bool isUpsert = false)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.UpdateOne(_session, filter, updateDefinitionBuilder, isUpsert);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.UpdateOne(_goSession.Session, filter, updateDefinitionBuilder, isUpsert);
         }
 
-        public Task<GoUpdateResult> UpdateOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter, Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder, bool isUpsert = false)
+        public Task<GoUpdateResult> UpdateOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                              Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                              bool isUpsert = false)
         {
-            var collection = TryStartAndGetGoCollection<TDocument>();
-            return collection.UpdateOneAsync(_session, filter, updateDefinitionBuilder, isUpsert);
+            var collection = GetIGoCollection<TDocument>();
+            return collection.UpdateOneAsync(_goSession.Session, filter, updateDefinitionBuilder, isUpsert);
         }
     }
 }

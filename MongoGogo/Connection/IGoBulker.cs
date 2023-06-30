@@ -30,10 +30,10 @@ namespace MongoGogo.Connection
         /// The operation is not executed until SaveChanges or SaveChangesAsync is called.
         /// </summary>
         /// <param name="filter">The filter to select the document to update.</param>
-        /// <param name="set">The update definition.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
         /// <param name="isUpsert">Whether to perform an upsert operation.</param>
         public void UpdateOne(Expression<Func<TDocument, bool>> filter,
-                              Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set,
+                              Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
                               bool isUpsert = false);
 
         /// <summary>
@@ -41,9 +41,9 @@ namespace MongoGogo.Connection
         /// The operation is not executed until SaveChanges or SaveChangesAsync is called.
         /// </summary>
         /// <param name="filter">The filter to select the documents to update.</param>
-        /// <param name="set">The update definition.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
         public void UpdateMany(Expression<Func<TDocument, bool>> filter,
-                               Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> set);
+                               Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder);
 
         /// <summary>
         /// Schedules an operation to replace a single document in the MongoDB collection based on a filter.
