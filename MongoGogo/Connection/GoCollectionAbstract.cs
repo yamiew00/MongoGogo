@@ -294,7 +294,7 @@ namespace MongoGogo.Connection
                 findOptions.Projection = projection?.Compile().Invoke(builder).MongoProjectionDefinition;
             }
 
-            if(session != null) return await(await MongoCollection.FindAsync(filter, findOptions)).ToListAsync();
+            if(session == null) return await(await MongoCollection.FindAsync(filter, findOptions)).ToListAsync();
             else return await (await MongoCollection.FindAsync(session, filter, findOptions)).ToListAsync();
         }
 
