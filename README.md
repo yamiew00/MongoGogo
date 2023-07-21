@@ -38,6 +38,7 @@ dotnet add package MongoGogo
 
 
 
+
 #### 2. **Example**
 
 - Few steps of `configuration` and `class building`(introduced later) to get `Collection` in abstract through the dependency resolution system.
