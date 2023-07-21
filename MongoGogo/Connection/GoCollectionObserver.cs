@@ -97,7 +97,24 @@ namespace MongoGogo.Connection
         /// </summary>
         /// <returns></returns>
         private async Task StartOberserve()
-        { 
+        {
+            while (true)
+            {
+                try
+                {
+                    await WatchAsync();
+                }
+                catch
+                {
+                    //ignore
+                }
+                
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+        }
+
+        private async Task WatchAsync()
+        {
             var cursor = await MongoCollection.WatchAsync(new ChangeStreamOptions
             {
                 FullDocument = ChangeStreamFullDocumentOption.UpdateLookup  //it will cause an instant BsonDocument result in ChangeStreamOperationType.Update
@@ -151,7 +168,7 @@ namespace MongoGogo.Connection
                                 action.Invoke(_id);
                             }
                         }
-                        catch{}
+                        catch { }
                     }
 
                     // Loop through the DeleteGenericDictionary because the type of change.DocumentKey is not guaranteed.
@@ -175,9 +192,10 @@ namespace MongoGogo.Connection
                                     action.Invoke(_id);
                                 }
                                 break;
-                            } catch(Exception ex)
+                            }
+                            catch (Exception ex)
                             {
-                                
+
                             }
                         }
                     }
