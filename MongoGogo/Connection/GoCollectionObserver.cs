@@ -21,17 +21,23 @@ namespace MongoGogo.Connection
         private bool _hasSubscriber = false;
 
         private readonly List<Action<TDocument>> InsertActions = new List<Action<TDocument>>();
+        private readonly List<Func<TDocument, Task>> InsertTasks = new List<Func<TDocument, Task>>();
 
         private readonly List<Action<TDocument>> UpdateActions = new List<Action<TDocument>>();
+        private readonly List<Func<TDocument, Task>> UpdateTasks = new List<Func<TDocument, Task>>();
 
         private readonly List<Action<TDocument>> ReplaceActions = new List<Action<TDocument>>();
+        private readonly List<Func<TDocument, Task>> ReplaceTasks = new List<Func<TDocument, Task>>();
 
         private readonly List<Action<ObjectId>> DeleteActions = new List<Action<ObjectId>>();
+        private readonly List<Func<ObjectId, Task>> DeleteTasks = new List<Func<ObjectId, Task>>();
 
         private readonly Dictionary<Type, List<Action<object>>> DeleteGenericDictionary = new Dictionary<Type, List<Action<object>>>();
+        private readonly Dictionary<Type, List<Func<object, Task>>> DeleteGenericDictionaryAsync = new Dictionary<Type, List<Func<object, Task>>>();
         private readonly Dictionary<Type, Type> GoGenericDocumentDictionary = new Dictionary<Type, Type>(); //dictionary for GoGenericDocument<type>, use this to avoid reflection waste.
 
         private readonly List<Action> AnyEventActions = new List<Action>();
+        private readonly List<Func<Task>> AnyEventTasks = new List<Func<Task>>();
 
         public GoCollectionObserver(IMongoCollection<TDocument> mongoCollection)
         {
@@ -108,8 +114,6 @@ namespace MongoGogo.Connection
                 {
                     //ignore
                 }
-                
-                await Task.Delay(TimeSpan.FromSeconds(1));
             }
         }
 
@@ -120,7 +124,7 @@ namespace MongoGogo.Connection
                 FullDocument = ChangeStreamFullDocumentOption.UpdateLookup  //it will cause an instant BsonDocument result in ChangeStreamOperationType.Update
             });
 
-            await cursor.ForEachAsync(change =>
+            await cursor.ForEachAsync(async change =>
             {
                 //insert
                 if (change.OperationType == ChangeStreamOperationType.Insert)
@@ -130,6 +134,11 @@ namespace MongoGogo.Connection
                     foreach (var action in InsertActions)
                     {
                         action.Invoke(insertValue);
+                    }
+
+                    foreach (var task in InsertTasks)
+                    {
+                        await task(insertValue);
                     }
                 }
 
@@ -142,16 +151,26 @@ namespace MongoGogo.Connection
                     {
                         action.Invoke(updateValue);
                     }
+
+                    foreach (var task in UpdateTasks)
+                    {
+                        await task(updateValue);
+                    }
                 }
 
                 //replace
                 if (change.OperationType == ChangeStreamOperationType.Replace)
                 {
-                    TDocument insertValue = change.FullDocument;
+                    TDocument replaceValue = change.FullDocument;
 
                     foreach (var action in ReplaceActions)
                     {
-                        action.Invoke(insertValue);
+                        action.Invoke(replaceValue);
+                    }
+
+                    foreach (var task in ReplaceTasks)
+                    {
+                        await task(replaceValue);
                     }
                 }
 
@@ -160,15 +179,16 @@ namespace MongoGogo.Connection
                 {
                     if (DeleteActions.Any())
                     {
-                        try
+                        ObjectId _id = BsonSerializer.Deserialize<GoDocument>(change.DocumentKey)._id;
+                        foreach (var action in DeleteActions)
                         {
-                            ObjectId _id = BsonSerializer.Deserialize<GoDocument>(change.DocumentKey)._id;
-                            foreach (var action in DeleteActions)
-                            {
-                                action.Invoke(_id);
-                            }
+                            action.Invoke(_id);
                         }
-                        catch { }
+
+                        foreach (var task in DeleteTasks)
+                        {
+                            await task(_id);
+                        }
                     }
 
                     // Loop through the DeleteGenericDictionary because the type of change.DocumentKey is not guaranteed.
@@ -183,19 +203,27 @@ namespace MongoGogo.Connection
                             var type = type_ActionList.Key;
                             var actionList = type_ActionList.Value;
 
-                            try
+                            var genericDocumentType = MakeGenericType(type);
+                            var _id = ((dynamic)BsonSerializer.Deserialize(change.DocumentKey, genericDocumentType))._id;
+                            foreach (var action in actionList)
                             {
-                                var genericDocumentType = MakeGenericType(type);
-                                var _id = ((dynamic)BsonSerializer.Deserialize(change.DocumentKey, genericDocumentType))._id;
-                                foreach (var action in actionList)
-                                {
-                                    action.Invoke(_id);
-                                }
-                                break;
+                                action.Invoke(_id);
                             }
-                            catch (Exception ex)
-                            {
+                        }
+                    }
 
+                    if (DeleteGenericDictionaryAsync.Any())
+                    {
+                        foreach (var type_taskList in DeleteGenericDictionaryAsync)
+                        {
+                            var type = type_taskList.Key;
+                            var taskList = type_taskList.Value;
+
+                            var genericDocumentType = MakeGenericType(type);
+                            var _id = ((dynamic)BsonSerializer.Deserialize(change.DocumentKey, genericDocumentType))._id;
+                            foreach (var task in taskList)
+                            {
+                                await task(_id);
                             }
                         }
                     }
@@ -205,6 +233,12 @@ namespace MongoGogo.Connection
                 foreach (var anyEvent in AnyEventActions)
                 {
                     anyEvent.Invoke();
+                }
+
+                //anyEvent: Run once regardless of the event that occurs.
+                foreach (var task in AnyEventTasks)
+                {
+                    await task.Invoke();
                 }
             });
         }
@@ -222,6 +256,48 @@ namespace MongoGogo.Connection
                 GoGenericDocumentDictionary.Add(type, genericDocument);
             }
             return genericDocument;
+        }
+
+        public void OnInsertAsync(Func<TDocument, Task> task)
+        {
+            InsertTasks.Add(task);
+            TryStartObserveIfNotSubscribed();
+        }
+
+        public void OnUpdateAsync(Func<TDocument, Task> task)
+        {
+            UpdateTasks.Add(task);
+            TryStartObserveIfNotSubscribed();
+        }
+
+        public void OnReplaceAsync(Func<TDocument, Task> task)
+        {
+            ReplaceTasks.Add(task);
+            TryStartObserveIfNotSubscribed();
+        }
+
+        public void OnDeleteAsync(Func<ObjectId, Task> task)
+        {
+            DeleteTasks.Add(task);
+            TryStartObserveIfNotSubscribed();
+        }
+
+        public void OnDeleteAsync<TBsonIdType>(Func<TBsonIdType, Task> task)
+        {
+            var bsonIdType = typeof(TBsonIdType);
+            if (!DeleteGenericDictionaryAsync.TryGetValue(bsonIdType, out var _)) DeleteGenericDictionaryAsync[bsonIdType] = new List<Func<object, Task>>();
+
+            // Convert the action to an Action<object>
+            Func<object, Task> objectTask = obj => task((TBsonIdType)obj);
+
+            DeleteGenericDictionaryAsync[bsonIdType].Add(objectTask);
+            TryStartObserveIfNotSubscribed();
+        }
+
+        public void OnAnyEventAsync(Func<Task> task)
+        {
+            AnyEventTasks.Add(task);
+            TryStartObserveIfNotSubscribed();
         }
     }
 }
