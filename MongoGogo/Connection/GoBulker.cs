@@ -1,6 +1,7 @@
 ﻿using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -69,6 +70,11 @@ namespace MongoGogo.Connection
 
         public virtual GoBulkResult SaveChanges()
         {
+            if (!_writeModels.Any())
+            {
+                return new GoBulkResult(default);
+            }
+
             var result = _collection.BulkWrite(_writeModels);
             _writeModels = new List<WriteModel<TDocument>>();
             return new GoBulkResult(result);
@@ -76,6 +82,11 @@ namespace MongoGogo.Connection
 
         public virtual async Task<GoBulkResult> SaveChangesAsync()
         {
+            if (!_writeModels.Any())
+            {
+                return new GoBulkResult(default);
+            }
+
             var result = await _collection.BulkWriteAsync(_writeModels);
             _writeModels = new List<WriteModel<TDocument>>();
             return new GoBulkResult(result);

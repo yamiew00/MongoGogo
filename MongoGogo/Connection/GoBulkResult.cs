@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using System;
 
 namespace MongoGogo.Connection
 {
@@ -47,6 +48,11 @@ namespace MongoGogo.Connection
 
         internal GoBulkResult(BulkWriteResult bulkWriteResult)
         {
+            if (bulkWriteResult is null)
+            {
+                return;
+            }
+
             DeletedCount = bulkWriteResult.DeletedCount;
             InsertedCount = bulkWriteResult.InsertedCount;
             IsAcknowledged = bulkWriteResult.IsAcknowledged;
