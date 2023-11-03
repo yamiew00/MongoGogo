@@ -7,9 +7,9 @@
     <Company />
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Description>- A generic repository implementation using MongoDB.Driver
-- Auto dependency injection for Microsoft.Extensions.DependencyInjection.
-- Provides attributes used for manage databases and collections for each connection.</Description>
+    <Description>- Generic Repository Pattern: Implements a generic repository using the MongoDB.Driver to simplify data access patterns in .NET applications.
+- Seamless Dependency Injection: Integrates effortlessly with Microsoft.Extensions.DependencyInjection for automatic service provisioning.
+- Attribute-Based Configuration: Offers custom attributes for straightforward management of databases and collections, tailored to each connection.</Description>
     <PackageTags>mongodb,mongo,nosql,repository</PackageTags>
     <Version>5.2.1</Version>
     <PackageProjectUrl>https://github.com/yamiew00/MongoGogo</PackageProjectUrl>
