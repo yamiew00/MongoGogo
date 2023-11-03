@@ -127,7 +127,21 @@ This code snippet uses the `FindAsync` method with a lambda expression to filter
 
 
 
-2. #### **InsertMany and InsertManyAsync**:
+2. #### **InsertOne and InsertOneAsync**:
+
+The `InsertOne` and `InsertOneAsync` methods are used to insert a single document into a collection. These methods provide an efficient way to add new data while ensuring that the insertion is acknowledged by MongoDB.
+
+```c#
+// Synchronously insert a new student record.
+_studentCollection.InsertOne(new Student { Name = "Eva", Age = 21 });
+
+// Asynchronously insert a new student record.
+await _studentCollection.InsertOneAsync(new Student { Name = "Frank", Age = 19 });
+```
+
+
+
+3. #### **InsertMany and InsertManyAsync**:
 
 The `InsertMany` and `InsertManyAsync` methods allow you to insert multiple documents into a collection at once. This is more efficient than inserting each document individually because it reduces the number of database calls.
 
@@ -149,7 +163,7 @@ await _studentCollection.InsertManyAsync(new List<Student>
 
 
 
-3. #### **UpdateOne, UpdateMany, UpdateOneAsync, UpdateManyAsync**:
+4. #### **UpdateOne, UpdateMany, UpdateOneAsync, UpdateManyAsync**:
 
 `UpdateOne` and `UpdateOneAsync` update a single document in the collection that matches the given filter. `UpdateMany` and `UpdateManyAsync` update all documents that match the filter.
 
@@ -181,7 +195,7 @@ await _studentCollection.UpdateManyAsync(
 
 
 
-4. #### **DeleteMany and DeleteManyAsync**:
+5. #### **DeleteMany and DeleteManyAsync**:
 
 `DeleteMany` and `DeleteManyAsync` remove all documents that match the given filter from the collection.
 

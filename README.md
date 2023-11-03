@@ -27,7 +27,7 @@ Implement `MongoGogo` in your .NET project to enhance your MongoDB operations wi
 
 ### Installation
 
-```
+```powershell
 dotnet add package MongoGogo
 ```
 
@@ -35,114 +35,94 @@ dotnet add package MongoGogo
 
 ### Setup
 
-Define your POCO data models. Use attributes to link them to MongoDB collections.
+1. Define your POCO data models. Use attributes to link them to MongoDB collections.
 
 ```c#
-// Example of a POCO linked to a MongoDB collection
+// Example of a user-defined POCO linked to a MongoDB collection
 [MongoCollection(fromDatabase: typeof(MyContext.StudentDb), collectionName: "students")]
 public class Student
 {
     [BsonId]
-    public ObjectId Id { get; set; }
+    public string Id { get; set; }
+    
     public string Name { get; set; }
     public int Age { get; set; }
     // Additional properties can be added as required
 }
 ```
 
-Here, `MyContext.StudentDb` signifies a dedicated database configuration within your context for the `Student` collection.
+`MyContext` is a placeholder for your custom context class, which manages database configurations like connection strings and database names. `StudentDb` represents the specific configuration for the `Student` collection within that context.
 
-Configure `MongoGogo` in your `Program.cs`:
+
+
+2. Configure `MongoGogo` in your `Program.cs`:
 
 ```c#
 var builder = WebApplication.CreateBuilder(args);
 
-// Register your custom MongoContext
+// Register your custom context class with MongoGogo
 builder.Services.AddMongoContext(new MyContext("your-mongodb-connection-string"));
 
 // Continue setting up your application...
 ```
 
+Replace `MyContext` with the name of your context class and `"your-mongodb-connection-string"` with your actual MongoDB connection string.
+
+
+
+3. For more details on model mapping and attribute configuration, see the [setup your models section](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md#4-setup-your-models) in our full documentation.
+
+
+
+### Dependency Injection Setup
+
+Once `MongoGogo` is configured in your `Program.cs`, you can inject `IGoCollection<T>` instances into your classes.
+
+For example, in an ASP.NET Core controller:
+
+```c#
+public class StudentsController : ControllerBase
+{
+    private readonly IGoCollection<Student> _studentCollections;
+
+    public StudentsController(IGoCollection<Student> studentCollections)
+    {
+        _studentCollections = studentCollections;
+    }
+
+    // ... CRUD operations using _students
+}
+```
+
+Here, `StudentsController` is an example of a user-created ASP.NET Core controller.
+
 
 
 ### Basic CRUD Operations
 
-Effortlessly perform CRUD operations on your collections using `IGoCollection`.
+MongoGogo simplifies CRUD operations with `IGoCollection<T>`:
 
-#### Create
+- **Create**: Add new documents asynchronously. [Learn more about create operations](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md#insertone-and-insertoneasync).
+- **Read**: Query documents with filters and projections. [Learn more about read operations](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md#findfindasync-with-projection).
+- **Update**: Modify documents using lambda expressions for clarity. [Learn more about update operations](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md#updateone-updatemany-updateoneasync-updatemanyasync).
+- **Delete**: Remove documents with condition definitions. [Learn more about delete operations](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md#deletemany-and-deletemanyasync).
 
-```c#
-public async Task CreateStudentAsync(IGoCollection<Student> students, Student newStudent)
-{
-    await students.InsertOneAsync(newStudent);
-}
-```
 
-#### Read
 
-```c#
-public async Task<IEnumerable<Student>> FindStudentsOverAgeAsync(IGoCollection<Student> students, int age)
-{
-    // Use lambda expression directly to filter students over a certain age
-    return await students.FindAsync(student => student.Age > age);
-}
-```
+## Transactional Support and Bulk Operations
 
-#### Read with Projection
+**MongoGogo** provides robust support for more advanced database operations:
 
-```c#
-public async Task<IEnumerable<StudentInfo>> FindStudentsWithProjectionAsync(IGoCollection<Student> students, int age)
-{
-    // Use lambda expression for filtering and projection to select specific fields
-    return await students.FindAsync(
-        student => student.Age > age,
-        projecter => projecter.Include(student => student.Id)
-        					  .Include(student => student.Name));
-}
-```
+- **Transactional Support**: Process multiple operations as a single unit of work to maintain data integrity.
+- **Bulk Operations**: Handle large numbers of operations in batches for efficiency.
 
-#### Update
-
-Use the power of lambda expressions for clear and concise update operations.
-
-```c#
-public async Task UpdateStudentAgeAsync(IGoCollection<Student> students, string studentId, int newAge)
-{
-    await students.UpdateOneAsync(
-        student => student.Id == studentId,
-        updater => updater.Set(student => student.Age, newAge)
-    );
-}
-```
-
-#### Update multiple fields simultaneously:
-
-```c#
-public async Task UpdateStudentDetailsAsync(IGoCollection<Student> students, string studentId, int newAge, string newName)
-{
-    await students.UpdateOneAsync(
-        student => student.Id == studentId,
-        updater => updater.Set(student => student.Age, newAge)
-                          .Set(student => student.Name, newName)
-    );
-}
-```
-
-#### Delete
-
-Lambda expressions also simplify delete operations, allowing for expressive condition definitions.
-
-```c#
-public async Task DeleteStudentsByAgeAsync(IGoCollection<Student> students, int ageThreshold)
-{
-    await students.DeleteManyAsync(student => student.Age <= ageThreshold);
-}
-```
+[Learn more about bulk operations and transactions section](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md#8-bulk-operations-for-efficient-data-management).
 
 
 
 ## Support
 
-For comprehensive guidelines on context configuration and model mapping, dive into our [full documentation](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md).
+For detailed guidelines on configuration and mapping, review our [full documentation](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md).
 
-Need help? Reach out at [r05221017@gmail.com](mailto:r05221017@gmail.com).
+For assistance, reach out at [r05221017@gmail.com](mailto:r05221017@gmail.com).
+
