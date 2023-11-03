@@ -7,6 +7,7 @@ Quickly integrate MongoDB into your .NET projects with MongoGogo, a lightweight 
 ## Why MongoGogo?
 
 - **Simplify MongoDB Interactions**: Utilize generic repository patterns to interact with MongoDB collections using .NET-friendly abstractions. 
+
 - **Seamless Integration**: Built to fit naturally into the ASP.NET Core framework, supporting dependency injection out of the box. 
 
 - **Efficient Data Management**: Perform synchronous and asynchronous CRUD operations with ease, thanks to a clear and fluent API. 
@@ -55,7 +56,27 @@ public class Student
 
 
 
-2. Configure `MongoGogo` in your `Program.cs`:
+2. Implement your custom context class for managing database configurations.
+
+```
+// Define your custom context class inheriting from GoContext
+public class MyContext : GoContext<MyContext>
+{
+    [MongoDatabase]
+    public class StudentDb { }
+
+    public MyContext(string connectionString) : base(connectionString)
+    {
+    }
+}
+
+```
+
+`MyContext` manages database configurations like connection strings and database names. `StudentDb` represents the specific configuration for the `Student` collection within that context.
+
+
+
+3. Configure `MongoGogo` in your `Program.cs`:
 
 ```c#
 var builder = WebApplication.CreateBuilder(args);
@@ -70,7 +91,7 @@ Replace `MyContext` with the name of your context class and `"your-mongodb-conne
 
 
 
-3. For more details on model mapping and attribute configuration, see the [setup your models section](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md#4-setup-your-models) in our full documentation.
+4. For more details on model mapping and attribute configuration, see the [setup your models section](https://github.com/yamiew00/MongoGogo/blob/main/GUIDE_FULL.md#4-setup-your-models) in our full documentation.
 
 
 
