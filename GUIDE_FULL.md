@@ -1,15 +1,24 @@
 ## Table of Contents 
 
 1. [Introduction](#introduction) 
-2. [Features](#features) 
-3. [Quick Start](#quick-start) 
-4. [Setup Your Models](#setup-your-models) 
-5. [Configure MongoGogo](#configure-mongogogo) 
-6. [Methods](#methods)
-7. [Change Streams and Event-Driven Data Management](#change Streams and Event-Driven Data Management)
-8. [Bulk Operations for Efficient Data Management](#bulk Operations for Efficient Data Management)
-9. [Transaction Operations](#Transaction Operations)
 
+2. [Features](#features) 
+
+3. [Quick Start](#quick-start) 
+
+4. [Setup Your Models](#setup-your-models) 
+
+5. [Configure MongoGogo](#configure-mongogogo) 
+
+6. [Methods](#methods)
+
+7. [Change Streams and Event-Driven Data Management](#change-streams-and-event-driven-data-management)
+
+8. [Bulk Operations for Efficient Data Management](#bulk-operations-for-efficient-data-management)
+
+9. [Transaction Operations](#transaction-operations)
+
+   
 
 
 ## Introduction 
