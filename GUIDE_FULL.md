@@ -401,10 +401,6 @@ By following these guidelines and using the transaction features of MongoGogo, d
 
 
 
-
-
-
-
 ## 10. FAQs
 
 1. **What is MongoGogo?**
@@ -435,8 +431,10 @@ By following these guidelines and using the transaction features of MongoGogo, d
 
    - Yes, MongoGogo utilizes MongoDB's Change Streams feature to provide real-time tracking of data changes, allowing for reactive and event-driven application development.
 
-8. **What kind of support is available if I encounter issues with MongoGogo?**
+8. **What should I do if I have questions or need assistance with MongoGogo?**
 
-   - We offer community support through our GitHub issues page and Stack Overflow. For enterprise support, please contact us directly through our support portal.
+   - If you have any questions or require assistance, please do not hesitate to contact us via email at [r05221017@gmail.com](mailto:r05221017@gmail.com). We are more than happy to provide the necessary support and guidance.
+
+   
 
    
