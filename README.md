@@ -101,8 +101,6 @@ public async Task<IEnumerable<StudentInfo>> FindStudentsWithProjectionAsync(IGoC
 }
 ```
 
-
-
 #### Update
 
 Use the power of lambda expressions for clear and concise update operations.
@@ -112,7 +110,20 @@ public async Task UpdateStudentAgeAsync(IGoCollection<Student> students, string 
 {
     await students.UpdateOneAsync(
         student => student.Id == studentId,
-        update => update.Set(student => student.Age, newAge)
+        updater => updater.Set(student => student.Age, newAge)
+    );
+}
+```
+
+#### Update multiple fields simultaneously:
+
+```c#
+public async Task UpdateStudentDetailsAsync(IGoCollection<Student> students, string studentId, int newAge, string newName)
+{
+    await students.UpdateOneAsync(
+        student => student.Id == studentId,
+        updater => updater.Set(student => student.Age, newAge)
+                          .Set(student => student.Name, newName)
     );
 }
 ```
