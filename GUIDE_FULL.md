@@ -18,16 +18,18 @@
 
 9. [Transaction Operations](#transaction-operations)
 
-   
+10. [FAQs](#faqs)
+
+    
 
 
-## Introduction 
+## 1. Introduction 
 
 MongoGogo is an ORM designed to simplify and enhance the integration of MongoDB into .NET projects. With its straightforward and powerful features, it provides a clear path for managing data with minimal setup. 
 
 
 
-## Features
+## 2. Features
 
 - **Generic Repository Pattern**: Simplify MongoDB interactions with .NET-friendly abstractions. 
 
@@ -41,13 +43,13 @@ MongoGogo is an ORM designed to simplify and enhance the integration of MongoDB 
 
 
 
-## Quick Start
+## 3. Quick Start
 
 Implement `MongoGogo` in your .NET project to enhance your MongoDB operations with minimal configuration.
 
 
 
-### Installation
+#### **Installation**
 
 ```
 dotnet add package MongoGogo
@@ -55,7 +57,7 @@ dotnet add package MongoGogo
 
 
 
-### Setup Your Models
+## 4. Setup Your Models
 
 Define your POCO (Plain Old CLR Objects) data models and use attributes to associate them with the corresponding MongoDB collections. Here is an example of setting up your models and the context configuration in MongoGogo:
 
@@ -87,9 +89,9 @@ public class MyContext : GoContext<MyContext>
 
 Each MongoDB database within your cluster should be represented by a public inner class (such as `StudentDb`) and decorated with a `MongoDatabase` attribute. The `GoContext` represents the MongoDB cluster and should be implemented with a generic type parameter of itself.
 
-### 
 
-### Configure MongoGogo
+
+## 5. Configure MongoGogo
 
 Register your custom context `MyContext` in your application configuration:
 
@@ -108,9 +110,9 @@ Make sure to replace `"your-mongodb-connection-string"` with the actual connecti
 
 
 
-### **Methods**
+## 6. **Methods**
 
-1. **Find/FindAsync with Projection**:
+1. #### **Find/FindAsync with Projection**:
 
 In MongoGogo, projections allow you to select only the necessary fields from your documents. You can use projection to reduce the amount of data that MongoGogo returns by including or excluding fields. Here’s how you can perform a query with projection to get only specific fields:
 
@@ -127,7 +129,7 @@ This code snippet uses the `FindAsync` method with a lambda expression to filter
 
 
 
-2. **InsertMany and InsertManyAsync**:
+2. #### **InsertMany and InsertManyAsync**:
 
 The `InsertMany` and `InsertManyAsync` methods allow you to insert multiple documents into a collection at once. This is more efficient than inserting each document individually because it reduces the number of database calls.
 
@@ -149,7 +151,7 @@ await _studentCollection.InsertManyAsync(new List<Student>
 
 
 
-3. **UpdateOne, UpdateMany, UpdateOneAsync, UpdateManyAsync**:
+3. #### **UpdateOne, UpdateMany, UpdateOneAsync, UpdateManyAsync**:
 
 `UpdateOne` and `UpdateOneAsync` update a single document in the collection that matches the given filter. `UpdateMany` and `UpdateManyAsync` update all documents that match the filter.
 
@@ -181,7 +183,7 @@ await _studentCollection.UpdateManyAsync(
 
 
 
-4. **DeleteMany and DeleteManyAsync**:
+4. #### **DeleteMany and DeleteManyAsync**:
 
 `DeleteMany` and `DeleteManyAsync` remove all documents that match the given filter from the collection.
 
@@ -199,9 +201,11 @@ These methods provide a straightforward way to manage documents in bulk, making 
 
 
 
-### **Change Streams and Event-Driven Data Management**
+## 7. Change Streams and Event-Driven Data Management
 
 MongoGogo harnesses the power of MongoDB's Change Streams to enable real-time tracking of data changes, a pivotal feature for building responsive, event-driven applications. Through `IGoCollectionObserver<TDocument>`, MongoGogo adeptly notifies subscribers of database operations like insertions, updates, replacements, or deletions on the `Student` collection. This functionality is key to creating applications that react promptly to data modifications, ensuring synchronized states across services and up-to-date user interfaces.
+
+
 
 #### **Real-Time Notifications with IGoCollectionObserver\<TDocument>**
 
@@ -266,9 +270,11 @@ Leveraging `IGoCollectionObserver<TDocument>` within MongoGogo enables developer
 
 
 
-### **Bulk Operations for Efficient Data Management**
+## 8. Bulk Operations for Efficient Data Management
 
 MongoGogo's version 4.0.0 and later include robust support for bulk write operations, allowing for the efficient execution of multiple database changes in a single operation. This feature is crucial for operations that need to process large volumes of data quickly and atomically.
+
+
 
 #### **Optimized Batch Processing with IGoBulker\<TDocument>**
 
@@ -318,7 +324,7 @@ In this example:
 
 
 
-### **Transaction Operations**
+## 9. Transaction Operations
 
 MongoGogo's transaction operations, introduced in version 5.1.0, empower developers to perform multiple database actions within a single atomic session. This feature is pivotal for maintaining data integrity when handling operations that must either all succeed together or fail without leaving partial changes.
 
@@ -394,3 +400,32 @@ The transaction mechanism in MongoGogo is designed to automatically rollback if 
 By following these guidelines and using the transaction features of MongoGogo, developers can confidently manage complex data operations with the assurance of consistency and rollback capabilities in the face of errors.
 
 **With `IGoTransaction`, you can orchestrate sophisticated data handling strategies that are resilient to failures, ensuring your database reflects a complete and consistent state or none at all.**
+
+
+
+
+
+
+
+## 10. FAQs
+
+1. **What is MongoGogo?**
+   - MongoGogo is an Object-Relational Mapping (ORM) tool designed to streamline the process of integrating MongoDB with .NET applications. It provides a suite of features to work with MongoDB in a way that is natural for C# developers.
+2. **Which versions of .NET is MongoGogo compatible with?**
+   - MongoGogo is compatible with .NET Core 3.1 and above, including .NET 5 and .NET 6. We ensure compatibility with the latest major versions of .NET.
+3. **How do I start using MongoGogo in my project?**
+   - To start using MongoGogo, install the NuGet package in your .NET project using the command `dotnet add package MongoGogo`, and follow the quick start guide in our documentation to set up your models and context.
+4. **Does MongoGogo support LINQ queries?**
+   - Yes, MongoGogo fully supports LINQ queries, allowing you to interact with MongoDB using familiar C# syntax.
+5. **Can I use MongoGogo for transactional operations?**
+   - Yes, starting with version 5.1.0, MongoGogo supports transactional operations, enabling you to execute multiple operations atomically to ensure data integrity.
+6. **How does MongoGogo handle bulk operations?**
+   - MongoGogo offers an `IGoBulker<TDocument>` interface for efficient bulk operations, which allows you to perform batch inserts, updates, and deletes to minimize database round trips.
+7. **Is there support for real-time data changes with MongoGogo?**
+   - Yes, MongoGogo utilizes MongoDB's Change Streams feature to provide real-time tracking of data changes, allowing for reactive and event-driven application development.
+8. **What kind of support is available if I encounter issues with MongoGogo?**
+   - We offer community support through our GitHub issues page and Stack Overflow. For enterprise support, please contact us directly through our support portal.
+9. **How can I contribute to the MongoGogo project?**
+   - Contributions are welcome! Please refer to our contribution guidelines on our GitHub repository for instructions on how to submit pull requests.
+10. **Where can I find the documentation for older versions of MongoGogo?**
+    - Documentation for all versions of MongoGogo is available on our official documentation site. You can select the version you are using from the version dropdown menu.
