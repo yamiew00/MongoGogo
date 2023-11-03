@@ -81,11 +81,27 @@ public async Task CreateStudentAsync(IGoCollection<Student> students, Student ne
 #### Read
 
 ```c#
-public async Task<IEnumerable<Student>> FindStudentsAsync(IGoCollection<Student> students, Expression<Func<Student, bool>> predicate)
+public async Task<IEnumerable<Student>> FindStudentsOverAgeAsync(IGoCollection<Student> students, int age)
 {
-    return await students.FindAsync(predicate);
+    // Use lambda expression directly to filter students over a certain age
+    return await students.FindAsync(student => student.Age > age);
 }
 ```
+
+#### Read with Projection
+
+```c#
+public async Task<IEnumerable<StudentInfo>> FindStudentsWithProjectionAsync(IGoCollection<Student> students, int age)
+{
+    // Use lambda expression for filtering and projection to select specific fields
+    return await students.FindAsync(
+        student => student.Age > age,
+        projecter => projecter.Include(student => student.Id)
+        					  .Include(student => student.Name));
+}
+```
+
+
 
 #### Update
 
