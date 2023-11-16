@@ -1,5 +1,7 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using MongoGogo.Connection.Builders.Finds;
+using MongoGogo.Connection.Builders.Replaces;
 using MongoGogo.Connection.Builders.Updates;
 using System;
 using System.Collections.Generic;
@@ -140,6 +142,20 @@ namespace MongoGogo.Connection
                                                              bool isUpsert = false)
         {
             return PrimaryMethodCaller().ReplaceOneAsync(default, filter, document, isUpsert);
+        }
+
+        public TDocument ReplaceOneAndRetrieve(Expression<Func<TDocument, bool>> filter,
+                                               TDocument document,
+                                               GoReplaceOneAndRetrieveOptions<TDocument> options)
+        {
+            return PrimaryMethodCaller().ReplaceOneAndRetrieve(default, filter, document, options);
+        }
+
+        public Task<TDocument> ReplaceOneAndRetrieveAsync(Expression<Func<TDocument, bool>> filter,
+                                                          TDocument document,
+                                                          GoReplaceOneAndRetrieveOptions<TDocument> options)
+        {
+            return PrimaryMethodCaller().ReplaceOneAndRetrieveAsync(default, filter, document, options);
         }
 
         public GoUpdateResult UpdateOne(Expression<Func<TDocument, bool>> filter,
@@ -301,7 +317,7 @@ namespace MongoGogo.Connection
                 AllowDiskUse = goFindOption.AllowDiskUse,
                 Limit = goFindOption.Limit,
                 Skip = goFindOption.Skip,
-                Sort = ToSort(goFindOption)
+                Sort = ToSort(goFindOption.Sort)
             };
 
             if (projection != null)
@@ -311,42 +327,6 @@ namespace MongoGogo.Connection
 
             if(session == null) return await(await MongoCollection.FindAsync(filter, findOptions)).ToListAsync();
             else return await (await MongoCollection.FindAsync(session, filter, findOptions)).ToListAsync();
-        }
-
-        private static SortDefinition<TDocument> ToSort(GoFindOption<TDocument> goFindOption)
-        {
-            if (goFindOption.Sort == null) return default;
-            var goSortBuilder = new GoSortBuilder<TDocument>();
-            var goSortDefinition = goFindOption.Sort.Compile().Invoke(goSortBuilder);
-
-            //deal primary
-            SortDefinition<TDocument> sortDefinition = default;
-            var primarySortRule = goSortDefinition._primarySortRule;
-            if (primarySortRule.OrderType == OrderType.Ascending)
-            {
-                sortDefinition = Builders<TDocument>.Sort.Ascending(primarySortRule.KeySelector);
-            }
-            else if (primarySortRule.OrderType == OrderType.Descending)
-            {
-                sortDefinition = Builders<TDocument>.Sort.Descending(primarySortRule.KeySelector);
-            }
-            else throw new NotImplementedException();
-
-            //deal secondary
-            foreach (var secondarySortRule in goSortDefinition._secondarySortRules)
-            {
-                if (secondarySortRule.OrderType == OrderType.Ascending)
-                {
-                    sortDefinition = sortDefinition.Ascending(secondarySortRule.KeySelector);
-                }
-                else if (secondarySortRule.OrderType == OrderType.Descending)
-                {
-                    sortDefinition = sortDefinition.Descending(secondarySortRule.KeySelector);
-                }
-                else throw new NotImplementedException();
-            }
-
-            return sortDefinition;
         }
 
         TDocument IGoCollection<TDocument>.FindOne(IClientSessionHandle session,
@@ -456,6 +436,103 @@ namespace MongoGogo.Connection
             return new GoReplaceResult(replaceResult);
         }
 
+
+        TDocument IGoCollection<TDocument>.ReplaceOneAndRetrieve(IClientSessionHandle session,
+                                                                 Expression<Func<TDocument, bool>> filter,
+                                                                 TDocument document,
+                                                                 GoReplaceOneAndRetrieveOptions<TDocument> options)
+        {
+            var projectBuilder = new GoProjectionBuilder<TDocument>();
+
+            FindOneAndReplaceOptions<TDocument> findOneAndReplaceOptions = options == default ? default : new FindOneAndReplaceOptions<TDocument>
+            {
+                Projection = options.Projection?.Compile().Invoke(projectBuilder).MongoProjectionDefinition,
+                ReturnDocument = options.ReturnDocument,
+                IsUpsert = options.IsUpsert,
+                Sort = ToSort(options?.Sort)
+            };
+
+            if(session == null)
+            {
+                return MongoCollection.FindOneAndReplace(filter,
+                                                         document,
+                                                         findOneAndReplaceOptions);
+            }
+            else
+            {
+                return MongoCollection.FindOneAndReplace(session,
+                                                         filter,
+                                                         document,
+                                                         findOneAndReplaceOptions);
+            }
+        }
+
+        private static SortDefinition<TDocument> ToSort(Expression<Func<GoSortBuilder<TDocument>, GoSortDefinition<TDocument>>> sort)
+        {
+            if (sort == default) return default;
+            var goSortBuilder = new GoSortBuilder<TDocument>();
+            var goSortDefinition = sort.Compile().Invoke(goSortBuilder);
+
+            //deal primary
+            SortDefinition<TDocument> sortDefinition = default;
+            var primarySortRule = goSortDefinition._primarySortRule;
+            if (primarySortRule.OrderType == OrderType.Ascending)
+            {
+                sortDefinition = Builders<TDocument>.Sort.Ascending(primarySortRule.KeySelector);
+            }
+            else if (primarySortRule.OrderType == OrderType.Descending)
+            {
+                sortDefinition = Builders<TDocument>.Sort.Descending(primarySortRule.KeySelector);
+            }
+            else throw new NotImplementedException();
+
+            //deal secondary
+            foreach (var secondarySortRule in goSortDefinition._secondarySortRules)
+            {
+                if (secondarySortRule.OrderType == OrderType.Ascending)
+                {
+                    sortDefinition = sortDefinition.Ascending(secondarySortRule.KeySelector);
+                }
+                else if (secondarySortRule.OrderType == OrderType.Descending)
+                {
+                    sortDefinition = sortDefinition.Descending(secondarySortRule.KeySelector);
+                }
+                else throw new NotImplementedException();
+            }
+
+            return sortDefinition;
+        }
+
+        Task<TDocument> IGoCollection<TDocument>.ReplaceOneAndRetrieveAsync(IClientSessionHandle session,
+                                                                            Expression<Func<TDocument, bool>> filter,
+                                                                            TDocument document,
+                                                                            GoReplaceOneAndRetrieveOptions<TDocument> options)
+        {
+            var projectBuilder = new GoProjectionBuilder<TDocument>();
+
+            FindOneAndReplaceOptions<TDocument> findOneAndReplaceOptions = options == default ? default : new FindOneAndReplaceOptions<TDocument>
+            {
+                Projection = options.Projection?.Compile().Invoke(projectBuilder).MongoProjectionDefinition,
+                ReturnDocument = options.ReturnDocument,
+                IsUpsert = options.IsUpsert,
+                Sort = ToSort(options?.Sort)
+            };
+
+            if (session == null)
+            {
+                return MongoCollection.FindOneAndReplaceAsync(filter,
+                                                              document,
+                                                              findOneAndReplaceOptions);
+            }
+            else
+            {
+                return MongoCollection.FindOneAndReplaceAsync(session,
+                                                              filter,
+                                                              document,
+                                                              findOneAndReplaceOptions);
+            }
+        }
+
         long IGoCollection<TDocument>.Count(IClientSessionHandle session,
                                             Expression<Func<TDocument, bool>> filter)
         {
@@ -548,7 +625,8 @@ namespace MongoGogo.Connection
             {
                 Projection = options.Projection?.Compile().Invoke(projectBuilder).MongoProjectionDefinition,
                 ReturnDocument = options.ReturnDocument,
-                IsUpsert = options.IsUpsert
+                IsUpsert = options.IsUpsert,
+                Sort = ToSort(options?.Sort)
             };
 
             if (session == null)
@@ -580,7 +658,8 @@ namespace MongoGogo.Connection
             {
                 Projection = options.Projection?.Compile().Invoke(projectBuilder).MongoProjectionDefinition,
                 ReturnDocument = options.ReturnDocument,
-                IsUpsert = options.IsUpsert
+                IsUpsert = options.IsUpsert,
+                Sort = ToSort(options?.Sort)
             };
 
             if (session == null)

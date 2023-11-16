@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using MongoGogo.Connection.Builders.Replaces;
 using MongoGogo.Connection.Builders.Updates;
 using System;
 using System.Collections.Generic;
@@ -183,6 +184,39 @@ namespace MongoGogo.Connection
                                                      bool isUpsert = false);
 
         /// <summary>
+        /// Atomically replaces a single document matching the provided filter with the specified document and retrieves it.
+        /// </summary>
+        /// <param name="filter">The filter to select the document for replacement.</param>
+        /// <param name="document">The new document to replace the existing one.</param>
+        /// <param name="options">The options for the replace and retrieve operation, including whether to return the document pre-replace or post-replace and whether to upsert.</param>
+        /// <returns>
+        /// The document as it was before the replace or after the replace, based on the specified options.
+        /// If no document matches the filter and 'IsUpsert' is false, returns null.
+        /// When 'IsUpsert' is true, and 'ReturnDocument' is set to 'After', a new document is inserted if no match is found, and the inserted document is returned.
+        /// This operation ensures that the document is retrieved in the same state as it was replaced.
+        /// </returns>
+        public TDocument ReplaceOneAndRetrieve(Expression<Func<TDocument, bool>> filter,
+                                               TDocument document,
+                                               GoReplaceOneAndRetrieveOptions<TDocument> options);
+
+        /// <summary>
+        /// Atomically replaces a single document matching the provided filter with the specified document and retrieves it asynchronously.
+        /// </summary>
+        /// <param name="filter">The filter to select the document for replacement.</param>
+        /// <param name="document">The new document to replace the existing one.</param>
+        /// <param name="options">The options for the replace and retrieve operation, including whether to return the document pre-replace or post-replace and whether to upsert.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is the document as it was before the replace or after the replace, based on the specified options.
+        /// If no document matches the filter and 'IsUpsert' is false, the task result will be null.
+        /// When 'IsUpsert' is true, and 'ReturnDocument' is set to 'After', a new document is inserted if no match is found, and the inserted document is returned as the task result.
+        /// This operation ensures that the document is retrieved in the same state as it was replaced.
+        /// </returns>
+        public Task<TDocument> ReplaceOneAndRetrieveAsync(Expression<Func<TDocument, bool>> filter,
+                                                          TDocument document,
+                                                          GoReplaceOneAndRetrieveOptions<TDocument> options);
+
+
+        /// <summary>
         /// Counts the number of documents matching the filter.
         /// </summary>
         /// <param name="filter">The filter.</param>
@@ -341,6 +375,16 @@ namespace MongoGogo.Connection
                                                        Expression<Func<TDocument, bool>> filter,
                                                        TDocument document,
                                                        bool isUpsert = false);
+
+        internal TDocument ReplaceOneAndRetrieve(IClientSessionHandle session,
+                                                 Expression<Func<TDocument, bool>> filter,
+                                                 TDocument document,
+                                                 GoReplaceOneAndRetrieveOptions<TDocument> options);
+
+        internal Task<TDocument> ReplaceOneAndRetrieveAsync(IClientSessionHandle session,
+                                                            Expression<Func<TDocument, bool>> filter,
+                                                            TDocument document,
+                                                            GoReplaceOneAndRetrieveOptions<TDocument> options);
 
         internal long Count(IClientSessionHandle session,
                             Expression<Func<TDocument, bool>> filter);
