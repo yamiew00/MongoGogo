@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using MongoGogo.Connection.Builders.Updates;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -218,6 +219,38 @@ namespace MongoGogo.Connection
                                                    bool isUpsert = false);
 
         /// <summary>
+        /// Atomically updates a single document matching the provided filter and retrieves it.
+        /// </summary>
+        /// <param name="filter">The filter to select the document for update.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply to the document.</param>
+        /// <param name="options">The options for the update and retrieve operation, including whether to return the document pre-update or post-update and whether to upsert.</param>
+        /// <returns>
+        /// The document as it was before the update or after the update, based on the specified options.
+        /// If no document matches the filter and 'IsUpsert' is false, returns null. 
+        /// When 'IsUpsert' is true, and 'ReturnDocument' is set to 'After', a new document is inserted if no match is found, and the inserted document is returned.
+        /// This operation ensures that the document is retrieved in the same state as it was updated.
+        /// </returns>
+        public TDocument UpdateOneAndRetrieve(Expression<Func<TDocument, bool>> filter,
+                                              Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                              GoUpdateOneAndRetrieveOptions<TDocument> options = default);
+
+        /// <summary>
+        /// Atomically updates a single document matching the provided filter and retrieves it asynchronously.
+        /// </summary>
+        /// <param name="filter">The filter to select the document for update.</param>
+        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply to the document.</param>
+        /// <param name="options">The options for the update and retrieve operation, including whether to return the document pre-update or post-update and whether to upsert.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is the document as it was before the update or after the update, based on the specified options.
+        /// If no document matches the filter and 'IsUpsert' is false, the task result will be null.
+        /// When 'IsUpsert' is true, and 'ReturnDocument' is set to 'After', a new document is inserted if no match is found, and the inserted document is returned as the task result.
+        /// This operation ensures that the document is retrieved in the same state as it was updated.
+        /// </returns>
+        public Task<TDocument> UpdateOneAndRetrieveAsync(Expression<Func<TDocument, bool>> filter,
+                                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                         GoUpdateOneAndRetrieveOptions<TDocument> options = default);
+
+        /// <summary>
         /// Updates multiple documents matching the filter.
         /// </summary>
         /// <param name="filter">The filter to select the documents.</param>
@@ -320,67 +353,38 @@ namespace MongoGogo.Connection
                                           Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
                                           bool isUpsert = false);
 
-        /// <summary>
-        /// Asynchronously updates a single document matching the filter.
-        /// </summary>
-        /// <param name="filter">The filter to select the document.</param>
-        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
-        /// <param name="isUpsert">Whether to create a new document if no match is found.</param>
-        /// <returns>The result of the update operation.</returns>
         internal Task<GoUpdateResult> UpdateOneAsync(IClientSessionHandle session,
                                                      Expression<Func<TDocument, bool>> filter,
                                                      Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
                                                      bool isUpsert = false);
 
-        /// <summary>
-        /// Updates multiple documents matching the filter.
-        /// </summary>
-        /// <param name="filter">The filter to select the documents.</param>
-        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
-        /// <returns>The result of the update operation.</returns>
+        internal TDocument UpdateOneAndRetrieve(IClientSessionHandle session,
+                                                Expression<Func<TDocument, bool>> filter,
+                                                Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                GoUpdateOneAndRetrieveOptions<TDocument> options = default);
+
+        internal Task<TDocument> UpdateOneAndRetrieveAsync(IClientSessionHandle session,
+                                                           Expression<Func<TDocument, bool>> filter,
+                                                           Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                           GoUpdateOneAndRetrieveOptions<TDocument> options = default);
+
         internal GoUpdateResult UpdateMany(IClientSessionHandle session,
                                            Expression<Func<TDocument, bool>> filter,
                                            Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder);
 
-        /// <summary>
-        /// Asynchronously updates multiple documents matching the filter.
-        /// </summary>
-        /// <param name="filter">The filter to select the documents.</param>
-        /// <param name="updateDefinitionBuilder">The builder to create the update operation to apply.</param>
-        /// <returns>The result of the update operation.</returns>
         internal Task<GoUpdateResult> UpdateManyAsync(IClientSessionHandle session,
                                                       Expression<Func<TDocument, bool>> filter,
                                                       Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder);
 
-        /// <summary>
-        /// Deletes a single document matching the filter.
-        /// </summary>
-        /// <param name="filter">The filter to select the document.</param>
-        /// <returns>The result of the delete operation.</returns>
         internal GoDeleteResult DeleteOne(IClientSessionHandle session,
                                           Expression<Func<TDocument, bool>> filter);
 
-        /// <summary>
-        /// Asynchronously deletes a single document matching the filter.
-        /// </summary>
-        /// <param name="filter">The filter to select the document.</param>
-        /// <returns>The result of the delete operation.</returns>
         internal Task<GoDeleteResult> DeleteOneAsync(IClientSessionHandle session,
                                                      Expression<Func<TDocument, bool>> filter);
 
-        /// <summary>
-        /// Deletes multiple documents matching the filter.
-        /// </summary>
-        /// <param name="filter">The filter to select the documents.</param>
-        /// <returns>The result of the delete operation.</returns>
         internal GoDeleteResult DeleteMany(IClientSessionHandle session,
                                            Expression<Func<TDocument, bool>> filter);
 
-        /// <summary>
-        /// Asynchronously deletes multiple documents matching the filter.
-        /// </summary>
-        /// <param name="filter">The filter to select the documents.</param>
-        /// <returns>The result of the delete operation.</returns>
         internal Task<GoDeleteResult> DeleteManyAsync(IClientSessionHandle session,
                                                       Expression<Func<TDocument, bool>> filter);
         #endregion
