@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoGogo.Connection.Builders.Deletes;
 using MongoGogo.Connection.Builders.Finds;
 using MongoGogo.Connection.Builders.Replaces;
 using MongoGogo.Connection.Builders.Updates;
@@ -206,6 +207,19 @@ namespace MongoGogo.Connection
         public Task<GoDeleteResult> DeleteOneAsync(Expression<Func<TDocument, bool>> filter)
         {
             return PrimaryMethodCaller().DeleteOneAsync(default, filter);
+        }
+
+
+        public TDocument DeleteOneAndRetrieve(Expression<Func<TDocument, bool>> filter,
+                                              GoDeleteOneAndRetrieveOptions<TDocument> options = null)
+        {
+            return PrimaryMethodCaller().DeleteOneAndRetrieve(default, filter, options);
+        }
+
+        public Task<TDocument> DeleteOneAndRetrieveAsync(Expression<Func<TDocument, bool>> filter,
+                                                         GoDeleteOneAndRetrieveOptions<TDocument> options = null)
+        {
+            return PrimaryMethodCaller().DeleteOneAndRetrieveAsync(default, filter, options);
         }
 
         public GoDeleteResult DeleteMany(Expression<Func<TDocument, bool>> filter)
@@ -647,7 +661,7 @@ namespace MongoGogo.Connection
         Task<TDocument> IGoCollection<TDocument>.UpdateOneAndRetrieveAsync(IClientSessionHandle session,
                                                                            Expression<Func<TDocument, bool>> filter,
                                                                            Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
-                                                                           GoUpdateOneAndRetrieveOptions<TDocument> options = default)
+                                                                           GoUpdateOneAndRetrieveOptions<TDocument> options)
         {
             var updateBuilder = new GoUpdateBuilder<TDocument>();
             var projectBuilder = new GoProjectionBuilder<TDocument>();
@@ -751,6 +765,46 @@ namespace MongoGogo.Connection
             return new GoDeleteResult(deleteResult);
         }
 
+        TDocument IGoCollection<TDocument>.DeleteOneAndRetrieve(IClientSessionHandle session,
+                                                                Expression<Func<TDocument, bool>> filter,
+                                                                GoDeleteOneAndRetrieveOptions<TDocument> options)
+        {
+            FindOneAndDeleteOptions<TDocument, TDocument> findOneAndDeleteOptions = options == default ? default : new FindOneAndDeleteOptions<TDocument, TDocument>
+            {
+                Projection = options.Projection?.Compile().Invoke(new GoProjectionBuilder<TDocument>()).MongoProjectionDefinition,
+                Sort = ToSort(options?.Sort)
+            };
+
+            if(session == null)
+            {
+                return MongoCollection.FindOneAndDelete(filter, findOneAndDeleteOptions);
+            }
+            else
+            {
+                return MongoCollection.FindOneAndDelete(session, filter, findOneAndDeleteOptions);
+            }
+        }
+
+        Task<TDocument> IGoCollection<TDocument>.DeleteOneAndRetrieveAsync(IClientSessionHandle session,
+                                                                           Expression<Func<TDocument, bool>> filter,
+                                                                           GoDeleteOneAndRetrieveOptions<TDocument> options)
+        {
+            FindOneAndDeleteOptions<TDocument, TDocument> findOneAndDeleteOptions = options == default ? default : new FindOneAndDeleteOptions<TDocument, TDocument>
+            {
+                Projection = options.Projection?.Compile().Invoke(new GoProjectionBuilder<TDocument>()).MongoProjectionDefinition,
+                Sort = ToSort(options?.Sort)
+            };
+
+            if(session == null)
+            {
+                return MongoCollection.FindOneAndDeleteAsync(filter, findOneAndDeleteOptions);
+            }
+            else
+            {
+                return MongoCollection.FindOneAndDeleteAsync(session, filter, findOneAndDeleteOptions);
+            }
+        }
+
         GoDeleteResult IGoCollection<TDocument>.DeleteMany(IClientSessionHandle session,
                                                            Expression<Func<TDocument, bool>> filter)
         {
@@ -780,7 +834,6 @@ namespace MongoGogo.Connection
             }
             return new GoDeleteResult(deleteResult);
         }
-
         #endregion
     }
 }

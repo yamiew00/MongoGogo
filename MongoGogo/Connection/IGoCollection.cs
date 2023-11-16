@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using MongoGogo.Connection.Builders.Deletes;
 using MongoGogo.Connection.Builders.Replaces;
 using MongoGogo.Connection.Builders.Updates;
 using System;
@@ -197,7 +198,7 @@ namespace MongoGogo.Connection
         /// </returns>
         public TDocument ReplaceOneAndRetrieve(Expression<Func<TDocument, bool>> filter,
                                                TDocument document,
-                                               GoReplaceOneAndRetrieveOptions<TDocument> options);
+                                               GoReplaceOneAndRetrieveOptions<TDocument> options = default);
 
         /// <summary>
         /// Atomically replaces a single document matching the provided filter with the specified document and retrieves it asynchronously.
@@ -213,7 +214,7 @@ namespace MongoGogo.Connection
         /// </returns>
         public Task<TDocument> ReplaceOneAndRetrieveAsync(Expression<Func<TDocument, bool>> filter,
                                                           TDocument document,
-                                                          GoReplaceOneAndRetrieveOptions<TDocument> options);
+                                                          GoReplaceOneAndRetrieveOptions<TDocument> options = default);
 
 
         /// <summary>
@@ -315,6 +316,33 @@ namespace MongoGogo.Connection
         /// <param name="filter">The filter to select the document.</param>
         /// <returns>The result of the delete operation.</returns>
         public Task<GoDeleteResult> DeleteOneAsync(Expression<Func<TDocument, bool>> filter);
+
+        /// <summary>
+        /// Atomically deletes a single document matching the provided filter and retrieves it.
+        /// </summary>
+        /// <param name="filter">The filter to select the document for deletion.</param>
+        /// <param name="options">The options for the delete and retrieve operation, including whether to return the document pre-deletion.</param>
+        /// <returns>
+        /// The document as it was before the deletion, based on the specified options.
+        /// If no document matches the filter, returns null.
+        /// This operation ensures that the document is retrieved in the same state as it was deleted.
+        /// </returns>
+        public TDocument DeleteOneAndRetrieve(Expression<Func<TDocument, bool>> filter,
+                                              GoDeleteOneAndRetrieveOptions<TDocument> options = default);
+
+        /// <summary>
+        /// Atomically deletes a single document matching the provided filter and retrieves it asynchronously.
+        /// </summary>
+        /// <param name="filter">The filter to select the document for deletion.</param>
+        /// <param name="options">The options for the delete and retrieve operation, including whether to return the document pre-deletion.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is the document as it was before the deletion, based on the specified options.
+        /// If no document matches the filter, the task result will be null.
+        /// This operation ensures that the document is retrieved in the same state as it was deleted.
+        /// </returns>
+        public Task<TDocument> DeleteOneAndRetrieveAsync(Expression<Func<TDocument, bool>> filter,
+                                                         GoDeleteOneAndRetrieveOptions<TDocument> options = default);
+
 
         /// <summary>
         /// Deletes multiple documents matching the filter.
@@ -425,6 +453,14 @@ namespace MongoGogo.Connection
 
         internal Task<GoDeleteResult> DeleteOneAsync(IClientSessionHandle session,
                                                      Expression<Func<TDocument, bool>> filter);
+
+        internal TDocument DeleteOneAndRetrieve(IClientSessionHandle session,
+                                                Expression<Func<TDocument, bool>> filter,
+                                                GoDeleteOneAndRetrieveOptions<TDocument> options = default);
+
+        internal Task<TDocument> DeleteOneAndRetrieveAsync(IClientSessionHandle session,
+                                                           Expression<Func<TDocument, bool>> filter,
+                                                           GoDeleteOneAndRetrieveOptions<TDocument> options = default);
 
         internal GoDeleteResult DeleteMany(IClientSessionHandle session,
                                            Expression<Func<TDocument, bool>> filter);
