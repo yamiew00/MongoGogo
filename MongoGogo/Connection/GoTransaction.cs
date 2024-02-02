@@ -1,4 +1,6 @@
-﻿using MongoDB.Driver;
+﻿using MongoGogo.Connection.Builders.Deletes;
+using MongoGogo.Connection.Builders.Replaces;
+using MongoGogo.Connection.Builders.Updates;
 using MongoGogo.Connection.Transactions;
 using MongoGogo.Exceptions;
 using System;
@@ -88,6 +90,20 @@ namespace MongoGogo.Connection
         {
             var collection = GetIGoCollection<TDocument>();
             return collection.DeleteOneAsync(_goSession.Session, filter);
+        }
+
+        public TDocument DeleteOneAndRetrieve<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                         GoDeleteOneAndRetrieveOptions<TDocument> options = null)
+        {
+            var collection = GetIGoCollection<TDocument>();
+            return collection.DeleteOneAndRetrieve(_goSession.Session, filter, options);
+        }
+
+        public Task<TDocument> DeleteOneAndRetrieveAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                    GoDeleteOneAndRetrieveOptions<TDocument> options = null)
+        {
+            var collection = GetIGoCollection<TDocument>();
+            return collection.DeleteOneAndRetrieveAsync(_goSession.Session, filter, options);
         }
 
         public IEnumerable<TDocument> Find<TDocument>(Expression<Func<TDocument, bool>> filter)
@@ -214,6 +230,22 @@ namespace MongoGogo.Connection
             return collection.ReplaceOneAsync(_goSession.Session, filter, document, isUpsert);
         }
 
+        public TDocument ReplaceOneAndRetrieve<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                          TDocument document,
+                                                          GoReplaceOneAndRetrieveOptions<TDocument> options = null)
+        {
+            var collection = GetIGoCollection<TDocument>();
+            return collection.ReplaceOneAndRetrieve(_goSession.Session, filter, document, options);
+        }
+
+        public Task<TDocument> ReplaceOneAndRetrieveAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                     TDocument document,
+                                                                     GoReplaceOneAndRetrieveOptions<TDocument> options = null)
+        {
+            var collection = GetIGoCollection<TDocument>();
+            return collection.ReplaceOneAndRetrieveAsync(_goSession.Session, filter, document, options);
+        }
+
         public GoUpdateResult UpdateMany<TDocument>(Expression<Func<TDocument, bool>> filter,
                                                     Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder)
         {
@@ -242,6 +274,22 @@ namespace MongoGogo.Connection
         {
             var collection = GetIGoCollection<TDocument>();
             return collection.UpdateOneAsync(_goSession.Session, filter, updateDefinitionBuilder, isUpsert);
+        }
+
+        public TDocument UpdateOneAndRetrieve<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                         Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                         GoUpdateOneAndRetrieveOptions<TDocument> options = null)
+        {
+            var collection = GetIGoCollection<TDocument>();
+            return collection.UpdateOneAndRetrieve(_goSession.Session, filter, updateDefinitionBuilder, options);
+        }
+
+        public Task<TDocument> UpdateOneAndRetrieveAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                    Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                                    GoUpdateOneAndRetrieveOptions<TDocument> options = null)
+        {
+            var collection = GetIGoCollection<TDocument>();
+            return collection.UpdateOneAndRetrieveAsync(_goSession.Session, filter, updateDefinitionBuilder, options);
         }
     }
 }

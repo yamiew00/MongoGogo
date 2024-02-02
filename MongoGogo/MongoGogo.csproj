@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net6;net5</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>yamiew</Authors>
     <Company />
@@ -11,10 +11,16 @@
 - Seamless Dependency Injection: Integrates effortlessly with Microsoft.Extensions.DependencyInjection for automatic service provisioning.
 - Attribute-Based Configuration: Offers custom attributes for straightforward management of databases and collections, tailored to each connection.</Description>
     <PackageTags>mongodb,mongo,nosql,repository</PackageTags>
-    <Version>5.3.0</Version>
+    <Version>5.4.0</Version>
     <PackageProjectUrl>https://github.com/yamiew00/MongoGogo</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yamiew00/MongoGogo</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>gogo_icon.png</PackageIcon>
+    <PackageReleaseNotes>MongoGogo 5.4.0 Release Notes
+
+Enhanced IGoTransaction with new methods to ensure atomic operations for transactional tasks:
+- ReplaceOneAndRetrieve, UpdateOneAndRetrieve, DeleteOneAndRetrieve
+- Asynchronous versions: ReplaceOneAndRetrieveAsync, UpdateOneAndRetrieveAsync, DeleteOneAndRetrieveAsync</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +34,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include="..\gogo_icon.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	  <None Include="..\README.md">
 	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>

@@ -1,4 +1,7 @@
-﻿using MongoGogo.Connection.Transactions;
+﻿using MongoGogo.Connection.Builders.Deletes;
+using MongoGogo.Connection.Builders.Replaces;
+using MongoGogo.Connection.Builders.Updates;
+using MongoGogo.Connection.Transactions;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -92,6 +95,14 @@ namespace MongoGogo.Connection
                                                                 TDocument document,
                                                                 bool isUpsert = false);
 
+        public TDocument ReplaceOneAndRetrieve<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                          TDocument document,
+                                                          GoReplaceOneAndRetrieveOptions<TDocument> options = default);
+
+        public Task<TDocument> ReplaceOneAndRetrieveAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                     TDocument document,
+                                                                     GoReplaceOneAndRetrieveOptions<TDocument> options = default);
+
         public long Count<TDocument>(Expression<Func<TDocument, bool>> filter);
 
         public Task<long> CountAsync<TDocument>(Expression<Func<TDocument, bool>> filter);
@@ -104,6 +115,14 @@ namespace MongoGogo.Connection
                                                               Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
                                                               bool isUpsert = false);
 
+        public TDocument UpdateOneAndRetrieve<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                 Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                 GoUpdateOneAndRetrieveOptions<TDocument> options = default);
+
+        public Task<TDocument> UpdateOneAndRetrieveAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                    Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                                    GoUpdateOneAndRetrieveOptions<TDocument> options = default);
+
         public GoUpdateResult UpdateMany<TDocument>(Expression<Func<TDocument, bool>> filter,
                                                     Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder);
 
@@ -113,6 +132,12 @@ namespace MongoGogo.Connection
         public GoDeleteResult DeleteOne<TDocument>(Expression<Func<TDocument, bool>> filter);
 
         public Task<GoDeleteResult> DeleteOneAsync<TDocument>(Expression<Func<TDocument, bool>> filter);
+
+        public TDocument DeleteOneAndRetrieve<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                         GoDeleteOneAndRetrieveOptions<TDocument> options = default);
+
+        public Task<TDocument> DeleteOneAndRetrieveAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
+                                                                    GoDeleteOneAndRetrieveOptions<TDocument> options = default);
 
         public GoDeleteResult DeleteMany<TDocument>(Expression<Func<TDocument, bool>> filter);
 
