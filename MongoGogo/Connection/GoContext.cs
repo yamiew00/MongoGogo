@@ -23,6 +23,11 @@ namespace MongoGogo.Connection
             _Client = new MongoClient(connectionString);
         }
 
+        public GoContext(MongoClientSettings clientSettings)
+        {
+            _Client = new MongoClient(clientSettings);
+        }
+
         public ICluster Cluster => _Client.Cluster;
 
         public MongoClientSettings Settings => _Client.Settings;
