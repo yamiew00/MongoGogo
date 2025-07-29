@@ -286,10 +286,11 @@ namespace MongoGogo.Connection
 
         public Task<TDocument> UpdateOneAndRetrieveAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
                                                                     Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                                    Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
                                                                     GoUpdateOneAndRetrieveOptions<TDocument> options = null)
         {
             var collection = GetIGoCollection<TDocument>();
-            return collection.UpdateOneAndRetrieveAsync(_goSession.Session, filter, updateDefinitionBuilder, options);
+            return collection.UpdateOneAndRetrieveAsync(_goSession.Session, filter, updateDefinitionBuilder, projection, options);
         }
     }
 }

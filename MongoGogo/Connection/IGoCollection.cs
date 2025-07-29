@@ -267,6 +267,7 @@ namespace MongoGogo.Connection
         /// </returns>
         public TDocument UpdateOneAndRetrieve(Expression<Func<TDocument, bool>> filter,
                                               Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                              Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
                                               GoUpdateOneAndRetrieveOptions<TDocument> options = default);
 
         /// <summary>
@@ -283,6 +284,7 @@ namespace MongoGogo.Connection
         /// </returns>
         public Task<TDocument> UpdateOneAndRetrieveAsync(Expression<Func<TDocument, bool>> filter,
                                                          Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                         Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
                                                          GoUpdateOneAndRetrieveOptions<TDocument> options = default);
 
         /// <summary>
@@ -438,6 +440,7 @@ namespace MongoGogo.Connection
         internal Task<TDocument> UpdateOneAndRetrieveAsync(IClientSessionHandle session,
                                                            Expression<Func<TDocument, bool>> filter,
                                                            Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                           Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
                                                            GoUpdateOneAndRetrieveOptions<TDocument> options = default);
 
         internal GoUpdateResult UpdateMany(IClientSessionHandle session,

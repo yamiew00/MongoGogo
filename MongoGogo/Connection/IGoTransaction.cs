@@ -121,6 +121,7 @@ namespace MongoGogo.Connection
 
         public Task<TDocument> UpdateOneAndRetrieveAsync<TDocument>(Expression<Func<TDocument, bool>> filter,
                                                                     Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                                    Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
                                                                     GoUpdateOneAndRetrieveOptions<TDocument> options = default);
 
         public GoUpdateResult UpdateMany<TDocument>(Expression<Func<TDocument, bool>> filter,

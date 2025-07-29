@@ -175,6 +175,7 @@ namespace MongoGogo.Connection
 
         public TDocument UpdateOneAndRetrieve(Expression<Func<TDocument, bool>> filter,
                                               Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                              Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
                                               GoUpdateOneAndRetrieveOptions<TDocument> options = default)
         {
             return PrimaryMethodCaller().UpdateOneAndRetrieve(default, filter, updateDefinitionBuilder, options);
@@ -182,9 +183,10 @@ namespace MongoGogo.Connection
 
         public Task<TDocument> UpdateOneAndRetrieveAsync(Expression<Func<TDocument, bool>> filter,
                                                          Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                         Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection = null,
                                                          GoUpdateOneAndRetrieveOptions<TDocument> options = default)
         {
-            return PrimaryMethodCaller().UpdateOneAndRetrieveAsync(default, filter, updateDefinitionBuilder, options);
+            return PrimaryMethodCaller().UpdateOneAndRetrieveAsync(default, filter, updateDefinitionBuilder, projection, options);
         }
 
         public GoUpdateResult UpdateMany(Expression<Func<TDocument, bool>> filter,
@@ -635,59 +637,66 @@ namespace MongoGogo.Connection
             var mongoUpdateDefinition = updateDefinitionBuilder.Compile()
                                                                .Invoke(updateBuilder).MongoUpdateDefinition;
 
-            FindOneAndUpdateOptions<TDocument> findOneAndUpdateOptions = options == default? default: new FindOneAndUpdateOptions<TDocument>
+            var findOneAndUpdateOptions = new FindOneAndUpdateOptions<TDocument>
             {
-                Projection = options.Projection?.Compile().Invoke(projectBuilder).MongoProjectionDefinition,
-                ReturnDocument = options.ReturnDocument,
-                IsUpsert = options.IsUpsert,
+                ReturnDocument = options?.ReturnDocument ?? ReturnDocument.After,
+                IsUpsert = options?.IsUpsert ?? false,
                 Sort = ToSort(options?.Sort)
             };
 
+            if (options?.Projection != null)
+            {
+                var projectionDefinition = options.Projection.Compile().Invoke(projectBuilder)?.MongoProjectionDefinition;
+                if (projectionDefinition != null)
+                {
+                    findOneAndUpdateOptions.Projection = projectionDefinition;
+                }
+            }
+
             if (session == null)
             {
-                 return MongoCollection.FindOneAndUpdate(filter,
-                                                         mongoUpdateDefinition,
-                                                         findOneAndUpdateOptions);
+                return MongoCollection.FindOneAndUpdate(filter, mongoUpdateDefinition, findOneAndUpdateOptions);
             }
             else
             {
-                return MongoCollection.FindOneAndUpdate(session,
-                                                        filter,
-                                                        mongoUpdateDefinition,
-                                                        findOneAndUpdateOptions);
+                return MongoCollection.FindOneAndUpdate(session, filter, mongoUpdateDefinition, findOneAndUpdateOptions);
             }
         }
 
         Task<TDocument> IGoCollection<TDocument>.UpdateOneAndRetrieveAsync(IClientSessionHandle session,
                                                                            Expression<Func<TDocument, bool>> filter,
                                                                            Expression<Func<GoUpdateBuilder<TDocument>, GoUpdateDefinition<TDocument>>> updateDefinitionBuilder,
+                                                                           Expression<Func<GoProjectionBuilder<TDocument>, GoProjectionDefinition<TDocument>>> projection,
                                                                            GoUpdateOneAndRetrieveOptions<TDocument> options)
         {
             var updateBuilder = new GoUpdateBuilder<TDocument>();
             var projectBuilder = new GoProjectionBuilder<TDocument>();
-            var mongoUpdateDefinition = updateDefinitionBuilder.Compile()
-                                                               .Invoke(updateBuilder).MongoUpdateDefinition;
+            var mongoUpdateDefinition = updateDefinitionBuilder.Compile().Invoke(updateBuilder).MongoUpdateDefinition;
 
-            FindOneAndUpdateOptions<TDocument> findOneAndUpdateOptions = options == default ? default : new FindOneAndUpdateOptions<TDocument>
+            var findOneAndUpdateOptions = new FindOneAndUpdateOptions<TDocument>
             {
-                Projection = options.Projection?.Compile().Invoke(projectBuilder).MongoProjectionDefinition,
-                ReturnDocument = options.ReturnDocument,
-                IsUpsert = options.IsUpsert,
+                ReturnDocument = options?.ReturnDocument ?? ReturnDocument.After,
+                IsUpsert = options?.IsUpsert ?? false,
                 Sort = ToSort(options?.Sort)
             };
 
+            // 確保 projection 不為 null 再設定
+            if (projection != null)
+            {
+                var projectionDefinition = projection.Compile().Invoke(projectBuilder)?.MongoProjectionDefinition;
+                if (projectionDefinition != null)
+                {
+                    findOneAndUpdateOptions.Projection = projectionDefinition;
+                }
+            }
+
             if (session == null)
             {
-                return MongoCollection.FindOneAndUpdateAsync(filter,
-                                                             mongoUpdateDefinition,
-                                                             findOneAndUpdateOptions);
+                return MongoCollection.FindOneAndUpdateAsync(filter, mongoUpdateDefinition, findOneAndUpdateOptions);
             }
             else
             {
-                return MongoCollection.FindOneAndUpdateAsync(session,
-                                                             filter,
-                                                             mongoUpdateDefinition,
-                                                             findOneAndUpdateOptions);
+                return MongoCollection.FindOneAndUpdateAsync(session, filter, mongoUpdateDefinition, findOneAndUpdateOptions);
             }
         }
 
@@ -834,6 +843,7 @@ namespace MongoGogo.Connection
             }
             return new GoDeleteResult(deleteResult);
         }
+
         #endregion
     }
 }
